@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,9 +6,11 @@ import { useAuth } from '@/contexts/AuthContext';
 import { ClientManagement } from './ClientManagement';
 import { ProcessManagement } from './ProcessManagement';
 
+type TabType = 'dashboard' | 'clients' | 'processes';
+
 export function Dashboard() {
   const { user, logout, clients, processes } = useAuth();
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'clients' | 'processes'>('dashboard');
+  const [activeTab, setActiveTab] = useState<TabType>('dashboard');
 
   const getStatusColor = (status: string) => {
     switch (status) {
