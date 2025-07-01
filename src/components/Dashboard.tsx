@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
 import { ClientManagement } from './ClientManagement';
-import { ProcessManagement } from './ProcessManagement';
+import { ProcessManagement } from './process/ProcessManagement';
 
 type TabType = 'dashboard' | 'clients' | 'processes';
 
