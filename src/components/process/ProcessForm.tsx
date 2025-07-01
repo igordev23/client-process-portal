@@ -53,9 +53,9 @@ export function ProcessForm({
     if (initialData) {
       setFormData({
         ...initialData,
-        situacaoPrisional: initialData.situacaoPrisional || '',
-        comarcaVara: initialData.comarcaVara || '',
-        tipoCrime: initialData.tipoCrime || '',
+        situacaoPrisional: (initialData as any).situacaoPrisional || '',
+        comarcaVara: (initialData as any).comarcaVara || '',
+        tipoCrime: (initialData as any).tipoCrime || '',
       });
     } else {
       setFormData({

@@ -21,7 +21,7 @@ export function ProcessManagement({ onBack }: { onBack: () => void }) {
 
   // Filtrar processos conforme busca e status
   const filteredProcesses = processes.filter(process => {
-    if (process.deleted) return false; // Ignorar excluídos, se houver flag deleted
+    if ((process as any).deleted) return false; // Ignorar excluídos, se houver flag deleted
     const client = clients.find(c => c.id === process.clientId);
     const lowerSearch = searchTerm.toLowerCase();
     const matchesSearch =
@@ -47,7 +47,7 @@ export function ProcessManagement({ onBack }: { onBack: () => void }) {
 
   // Excluir processo (aqui removendo do estado via updateProcess com flag deleted)
   const deleteProcess = (id: string) => {
-    updateProcess(id, { deleted: true });
+    updateProcess(id, { ...(processes.find(p => p.id === id) || {}), deleted: true } as Partial<Process>);
     toast({
       title: 'Processo excluído',
       description: 'O processo foi removido com sucesso.',
