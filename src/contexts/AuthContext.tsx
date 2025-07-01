@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { toast } from '@/hooks/use-toast';
 
@@ -36,6 +35,9 @@ export interface Process {
   description: string;
   lawyer: string;
   updates: ProcessUpdate[];
+  prisonStatus?: string;
+  court?: string;
+  crimeType?: string;
 }
 
 export interface ProcessUpdate {
@@ -58,13 +60,13 @@ interface AuthContextType {
   deleteClient: (id: string) => void;
   addProcess: (process: Omit<Process, 'id' | 'updates'>) => void;
   updateProcess: (id: string, process: Partial<Process>) => void;
+  deleteProcess: (id: string) => void;
   addProcessUpdate: (processId: string, update: Omit<ProcessUpdate, 'id'>) => void;
   getClientProcesses: (clientId: string) => Process[];
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Dados iniciais para desenvolvimento
 const initialUsers: User[] = [
   {
     id: '1',
@@ -134,6 +136,9 @@ const initialProcesses: Process[] = [
         author: 'João Santos',
       },
     ],
+    prisonStatus: 'Preso preventivamente',
+    court: 'Vara Criminal de São Paulo',
+    crimeType: 'Receptação',
   },
   {
     id: '2',
@@ -153,6 +158,9 @@ const initialProcesses: Process[] = [
         author: 'Dra. Maria Silva',
       },
     ],
+    prisonStatus: 'Em liberdade',
+    court: '2ª Vara do Trabalho de SP',
+    crimeType: 'Trabalhista',
   },
 ];
 
@@ -163,7 +171,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [users, setUsers] = useState<User[]>([]);
 
   useEffect(() => {
-    // Carregar dados do localStorage
     const storedUser = localStorage.getItem('currentUser');
     const storedClients = localStorage.getItem('clients');
     const storedProcesses = localStorage.getItem('processes');
@@ -179,34 +186,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = async (email: string, password: string): Promise<boolean> => {
-    // Simulação de login - em produção seria uma chamada à API
     const foundUser = users.find(u => u.email === email);
-    
+
     if (foundUser && password === '123456') {
       setUser(foundUser);
       localStorage.setItem('currentUser', JSON.stringify(foundUser));
-      toast({
-        title: "Login realizado com sucesso",
-        description: `Bem-vindo(a), ${foundUser.name}!`,
-      });
+      toast({ title: 'Login realizado com sucesso', description: `Bem-vindo(a), ${foundUser.name}!` });
       return true;
     }
-    
-    toast({
-      title: "Erro no login",
-      description: "Email ou senha incorretos",
-      variant: "destructive",
-    });
+
+    toast({ title: 'Erro no login', description: 'Email ou senha incorretos', variant: 'destructive' });
     return false;
   };
 
   const logout = () => {
     setUser(null);
     localStorage.removeItem('currentUser');
-    toast({
-      title: "Logout realizado",
-      description: "Até logo!",
-    });
+    toast({ title: 'Logout realizado', description: 'Até logo!' });
   };
 
   const generateAccessKey = (name: string): string => {
@@ -228,46 +224,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const updatedClients = [...clients, newClient];
     setClients(updatedClients);
     localStorage.setItem('clients', JSON.stringify(updatedClients));
-    
-    toast({
-      title: "Cliente cadastrado",
-      description: `Cliente ${newClient.name} cadastrado com chave de acesso: ${newClient.accessKey}`,
-    });
+
+    toast({ title: 'Cliente cadastrado', description: `Cliente ${newClient.name} cadastrado com chave de acesso: ${newClient.accessKey}` });
   };
 
   const updateClient = (id: string, updates: Partial<Client>) => {
     const updatedClients = clients.map(client =>
-      client.id === id
-        ? { ...client, ...updates, updatedAt: new Date().toISOString() }
-        : client
+      client.id === id ? { ...client, ...updates, updatedAt: new Date().toISOString() } : client
     );
     setClients(updatedClients);
     localStorage.setItem('clients', JSON.stringify(updatedClients));
-    
-    toast({
-      title: "Cliente atualizado",
-      description: "Dados do cliente foram atualizados com sucesso",
-    });
+
+    toast({ title: 'Cliente atualizado', description: 'Dados do cliente foram atualizados com sucesso' });
   };
 
   const deleteClient = (id: string) => {
     if (user?.role !== 'admin') {
-      toast({
-        title: "Acesso negado",
-        description: "Apenas administradores podem excluir clientes",
-        variant: "destructive",
-      });
+      toast({ title: 'Acesso negado', description: 'Apenas administradores podem excluir clientes', variant: 'destructive' });
       return;
     }
 
     const updatedClients = clients.filter(client => client.id !== id);
     setClients(updatedClients);
     localStorage.setItem('clients', JSON.stringify(updatedClients));
-    
-    toast({
-      title: "Cliente removido",
-      description: "Cliente foi removido do sistema",
-    });
+
+    toast({ title: 'Cliente removido', description: 'Cliente foi removido do sistema' });
   };
 
   const addProcess = (processData: Omit<Process, 'id' | 'updates'>) => {
@@ -280,26 +261,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const updatedProcesses = [...processes, newProcess];
     setProcesses(updatedProcesses);
     localStorage.setItem('processes', JSON.stringify(updatedProcesses));
-    
-    toast({
-      title: "Processo cadastrado",
-      description: `Processo ${newProcess.processNumber} foi cadastrado`,
-    });
+
+    toast({ title: 'Processo cadastrado', description: `Processo ${newProcess.processNumber} foi cadastrado` });
   };
 
   const updateProcess = (id: string, updates: Partial<Process>) => {
     const updatedProcesses = processes.map(process =>
-      process.id === id
-        ? { ...process, ...updates, lastUpdate: new Date().toISOString().split('T')[0] }
-        : process
+      process.id === id ? { ...process, ...updates, lastUpdate: new Date().toISOString().split('T')[0] } : process
     );
     setProcesses(updatedProcesses);
     localStorage.setItem('processes', JSON.stringify(updatedProcesses));
-    
-    toast({
-      title: "Processo atualizado",
-      description: "Status do processo foi atualizado",
-    });
+
+    toast({ title: 'Processo atualizado', description: 'Dados do processo foram atualizados' });
+  };
+
+  const deleteProcess = (id: string) => {
+    const updated = processes.filter(p => p.id !== id);
+    setProcesses(updated);
+    localStorage.setItem('processes', JSON.stringify(updated));
+    toast({ title: 'Processo excluído', description: 'O processo foi removido com sucesso' });
   };
 
   const addProcessUpdate = (processId: string, updateData: Omit<ProcessUpdate, 'id'>) => {
@@ -310,21 +290,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const updatedProcesses = processes.map(process =>
       process.id === processId
-        ? {
-            ...process,
-            updates: [...process.updates, newUpdate],
-            lastUpdate: newUpdate.date,
-          }
+        ? { ...process, updates: [...process.updates, newUpdate], lastUpdate: newUpdate.date }
         : process
     );
 
     setProcesses(updatedProcesses);
     localStorage.setItem('processes', JSON.stringify(updatedProcesses));
-    
-    toast({
-      title: "Atualização adicionada",
-      description: "Nova atualização foi adicionada ao processo",
-    });
+
+    toast({ title: 'Atualização adicionada', description: 'Nova atualização foi adicionada ao processo' });
   };
 
   const getClientProcesses = (clientId: string): Process[] => {
@@ -344,15 +317,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     deleteClient,
     addProcess,
     updateProcess,
+    deleteProcess,
     addProcessUpdate,
     getClientProcesses,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {
