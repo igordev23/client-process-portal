@@ -1,73 +1,176 @@
-# Welcome to your Lovable project
 
-## Project info
+# Sistema de Gestão Jurídica
 
-**URL**: https://lovable.dev/projects/01c1ba0f-b148-4a70-a0a9-38e5666a434b
+Um sistema web para gestão de processos jurídicos desenvolvido com React + TypeScript + Vite.
 
-## How can I edit this code?
+## 🚀 Tecnologias
 
-There are several ways of editing your application.
+- **React 18** - Framework principal
+- **TypeScript** - Tipagem estática
+- **Vite** - Build tool e dev server
+- **Tailwind CSS** - Estilização
+- **Shadcn/UI** - Componentes UI
+- **React Router** - Roteamento
+- **TanStack Query** - Gerenciamento de estado
 
-**Use Lovable**
+## 🛠️ Como executar
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/01c1ba0f-b148-4a70-a0a9-38e5666a434b) and start prompting.
+```bash
+# Instalar dependências
+npm install
 
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Executar em modo desenvolvimento (com TypeScript automático)
 npm run dev
+
+# Build para produção (com verificação TypeScript)
+npm run build
+
+# Verificar tipos TypeScript manualmente
+npm run type-check
 ```
 
-**Edit a file directly in GitHub**
+## 📁 Estrutura do Projeto
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+```
+src/
+├── components/          # Componentes React (.tsx)
+│   ├── ui/             # Componentes base do Shadcn/UI
+│   ├── Dashboard.tsx   # Dashboard principal
+│   ├── LoginForm.tsx   # Formulário de login
+│   └── ...
+├── contexts/           # Contextos React (.tsx)
+│   └── AuthContext.tsx
+├── hooks/              # Custom hooks (.ts/.tsx)
+├── lib/                # Utilitários (.ts)
+├── pages/              # Páginas (.tsx)
+├── types/              # Definições de tipos (.d.ts)
+└── main.tsx           # Ponto de entrada
+```
 
-**Use GitHub Codespaces**
+## 📝 Como adicionar novos arquivos TypeScript
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+### 1. Componentes React
+```typescript
+// src/components/MeuComponente.tsx
+import React from 'react';
 
-## What technologies are used for this project?
+interface MeuComponenteProps {
+  titulo: string;
+  opcoes?: string[];
+}
 
-This project is built with:
+export function MeuComponente({ titulo, opcoes = [] }: MeuComponenteProps) {
+  return (
+    <div>
+      <h1>{titulo}</h1>
+      {opcoes.map((opcao, index) => (
+        <p key={index}>{opcao}</p>
+      ))}
+    </div>
+  );
+}
+```
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+### 2. Hooks customizados
+```typescript
+// src/hooks/useMeuHook.ts
+import { useState, useEffect } from 'react';
 
-## How can I deploy this project?
+interface MeuHookReturn {
+  dados: string[];
+  carregando: boolean;
+  erro: string | null;
+}
 
-Simply open [Lovable](https://lovable.dev/projects/01c1ba0f-b148-4a70-a0a9-38e5666a434b) and click on Share -> Publish.
+export function useMeuHook(): MeuHookReturn {
+  const [dados, setDados] = useState<string[]>([]);
+  const [carregando, setCarregando] = useState(true);
+  const [erro, setErro] = useState<string | null>(null);
 
-## Can I connect a custom domain to my Lovable project?
+  useEffect(() => {
+    // Lógica do hook
+  }, []);
 
-Yes, you can!
+  return { dados, carregando, erro };
+}
+```
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+### 3. Utilitários e funções
+```typescript
+// src/lib/utils.ts
+export interface FormatarDataOptions {
+  formato?: 'DD/MM/YYYY' | 'MM/DD/YYYY';
+  incluirHora?: boolean;
+}
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+export function formatarData(data: Date, options: FormatarDataOptions = {}): string {
+  // Implementação
+  return data.toLocaleDateString('pt-BR');
+}
+```
+
+### 4. Tipos e interfaces
+```typescript
+// src/types/cliente.d.ts
+export interface Cliente {
+  id: string;
+  nome: string;
+  cpf: string;
+  email: string;
+  telefone?: string;
+  endereco: {
+    rua: string;
+    cidade: string;
+    estado: string;
+    cep: string;
+  };
+  criadoEm: Date;
+  chaveAcesso: string;
+}
+
+export type StatusProcesso = 'ativo' | 'pendente' | 'concluido' | 'cancelado';
+```
+
+## 🔧 Configuração TypeScript
+
+O projeto usa as seguintes configurações:
+
+- **tsconfig.json** - Configuração principal do TypeScript
+- **tsconfig.app.json** - Configuração específica da aplicação
+- **tsconfig.node.json** - Configuração para scripts Node.js
+
+### Principais recursos habilitados:
+- Strict mode (verificação rigorosa)
+- JSX com React 18
+- Resolução de módulos ESNext
+- Aliases de caminho (`@/` aponta para `src/`)
+
+## ✅ Boas práticas TypeScript
+
+1. **Sempre defina tipos para props de componentes**
+2. **Use interfaces para objetos complexos**
+3. **Prefira `type` para unions e primitivos**
+4. **Evite `any` - use `unknown` quando necessário**
+5. **Use genéricos para funções reutilizáveis**
+
+## 🚨 Verificação de tipos
+
+O TypeScript é verificado automaticamente durante:
+- `npm run dev` (modo desenvolvimento)
+- `npm run build` (build de produção)
+- No editor com extensão TypeScript
+
+### Comandos úteis:
+```bash
+# Verificar tipos sem executar
+npx tsc --noEmit
+
+# Verificar tipos com watch mode
+npx tsc --noEmit --watch
+```
+
+## 📚 Recursos adicionais
+
+- [TypeScript Handbook](https://www.typescriptlang.org/docs/)
+- [React + TypeScript Cheatsheet](https://react-typescript-cheatsheet.netlify.app/)
+- [Vite TypeScript Guide](https://vitejs.dev/guide/features.html#typescript)
