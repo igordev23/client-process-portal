@@ -19,6 +19,8 @@ interface Props {
   process: Process | null;
   user: { name: string } | null;
   onSubmit: (update: { date: string; description: string; author: string }) => void;
+  initialData?: Process['updates'][number];
+  onDelete?: () => void;
 }
 
 export function ProcessUpdateDialog({
@@ -27,6 +29,8 @@ export function ProcessUpdateDialog({
   process,
   user,
   onSubmit,
+  initialData,
+  onDelete,
 }: Props) {
   const [updateData, setUpdateData] = useState({
     date: new Date().toISOString().split('T')[0],
@@ -36,13 +40,21 @@ export function ProcessUpdateDialog({
 
   useEffect(() => {
     if (isOpen) {
-      setUpdateData({
-        date: new Date().toISOString().split('T')[0],
-        description: '',
-        author: user?.name || '',
-      });
+      if (initialData) {
+        setUpdateData({
+          date: initialData.date,
+          description: initialData.description,
+          author: initialData.author,
+        });
+      } else {
+        setUpdateData({
+          date: new Date().toISOString().split('T')[0],
+          description: '',
+          author: user?.name || '',
+        });
+      }
     }
-  }, [isOpen, user]);
+  }, [isOpen, user, initialData]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,13 +62,21 @@ export function ProcessUpdateDialog({
     onOpenChange(false);
   };
 
+  const handleCancel = () => {
+    onOpenChange(false);
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Adicionar Atualização</DialogTitle>
+          <DialogTitle>
+            {initialData ? 'Editar Atualização' : 'Adicionar Atualização'}
+          </DialogTitle>
           <DialogDescription>
-            Adicione uma nova atualização ao processo: {process?.title}
+            {initialData
+              ? `Edite a atualização do processo: ${process?.title}`
+              : `Adicione uma nova atualização ao processo: ${process?.title}`}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -66,7 +86,9 @@ export function ProcessUpdateDialog({
               id="update-date"
               type="date"
               value={updateData.date}
-              onChange={(e) => setUpdateData({ ...updateData, date: e.target.value })}
+              onChange={(e) =>
+                setUpdateData({ ...updateData, date: e.target.value })
+              }
               required
             />
           </div>
@@ -76,7 +98,9 @@ export function ProcessUpdateDialog({
             <Input
               id="update-author"
               value={updateData.author}
-              onChange={(e) => setUpdateData({ ...updateData, author: e.target.value })}
+              onChange={(e) =>
+                setUpdateData({ ...updateData, author: e.target.value })
+              }
               required
             />
           </div>
@@ -87,22 +111,43 @@ export function ProcessUpdateDialog({
               id="update-description"
               placeholder="Descreva a atualização do processo..."
               value={updateData.description}
-              onChange={(e) => setUpdateData({ ...updateData, description: e.target.value })}
+              onChange={(e) =>
+                setUpdateData({ ...updateData, description: e.target.value })
+              }
               required
             />
           </div>
 
-          <div className="flex gap-2 pt-4">
+          <div className="flex gap-2 pt-4 flex-wrap">
             <Button
               type="button"
               variant="outline"
-              onClick={() => onOpenChange(false)}
+              onClick={handleCancel}
               className="flex-1"
             >
               Cancelar
             </Button>
+
+            {initialData && onDelete && (
+              <Button
+                type="button"
+                variant="destructive"
+                onClick={() => {
+                  if (
+                    confirm('Deseja realmente excluir esta atualização?')
+                  ) {
+                    onDelete();
+                    onOpenChange(false);
+                  }
+                }}
+                className="flex-1"
+              >
+                Excluir
+              </Button>
+            )}
+
             <Button type="submit" className="flex-1 legal-gradient text-white">
-              Adicionar
+              {initialData ? 'Salvar Alterações' : 'Adicionar'}
             </Button>
           </div>
         </form>

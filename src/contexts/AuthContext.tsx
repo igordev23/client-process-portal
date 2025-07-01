@@ -63,6 +63,8 @@ interface AuthContextType {
   deleteProcess: (id: string) => void;
   addProcessUpdate: (processId: string, update: Omit<ProcessUpdate, 'id'>) => void;
   getClientProcesses: (clientId: string) => Process[];
+  updateProcessUpdate: (processId: string, updateId: string, newUpdate: Partial<ProcessUpdate>) => void;
+  deleteProcessUpdate: (processId: string, updateId: string) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -304,6 +306,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return processes.filter(process => process.clientId === clientId);
   };
 
+
+  const updateProcessUpdate = (processId: string, updateId: string, newUpdate: Partial<ProcessUpdate>) => {
+  const updatedProcesses = processes.map((process) => {
+    if (process.id !== processId) return process;
+    const updatedUpdates = process.updates.map((u) =>
+      u.id === updateId ? { ...u, ...newUpdate } : u
+    );
+    return { ...process, updates: updatedUpdates };
+  });
+  setProcesses(updatedProcesses);
+  localStorage.setItem('processes', JSON.stringify(updatedProcesses));
+  toast({ title: 'Atualização editada', description: 'A atualização foi alterada.' });
+};
+
+const deleteProcessUpdate = (processId: string, updateId: string) => {
+  const updatedProcesses = processes.map((process) => {
+    if (process.id !== processId) return process;
+    const updatedUpdates = process.updates.filter((u) => u.id !== updateId);
+    return { ...process, updates: updatedUpdates };
+  });
+  setProcesses(updatedProcesses);
+  localStorage.setItem('processes', JSON.stringify(updatedProcesses));
+  toast({ title: 'Atualização excluída', description: 'A atualização foi removida.' });
+};
+
   const value: AuthContextType = {
     user,
     login,
@@ -320,6 +347,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     deleteProcess,
     addProcessUpdate,
     getClientProcesses,
+    updateProcessUpdate,
+    deleteProcessUpdate,
+
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
