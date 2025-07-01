@@ -1,5 +1,5 @@
 // src/components/process/ProcessForm.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle
 } from '@/components/ui/dialog';
@@ -18,9 +18,17 @@ interface Props {
   onSubmit: (process: Process) => void;
   clients: { id: string; name: string; cpf: string }[];
   user: { name: string } | null;
+  initialData?: Process;
 }
 
-export function ProcessForm({ isOpen, onOpenChange, onSubmit, clients, user }: Props) {
+export function ProcessForm({
+  isOpen,
+  onOpenChange,
+  onSubmit,
+  clients,
+  user,
+  initialData
+}: Props) {
   const [formData, setFormData] = useState<Process & {
     situacaoPrisional: string;
     comarcaVara: string;
@@ -41,9 +49,40 @@ export function ProcessForm({ isOpen, onOpenChange, onSubmit, clients, user }: P
     tipoCrime: '',
   });
 
+  useEffect(() => {
+    if (initialData) {
+      setFormData({
+        ...initialData,
+        situacaoPrisional: initialData.situacaoPrisional || '',
+        comarcaVara: initialData.comarcaVara || '',
+        tipoCrime: initialData.tipoCrime || '',
+      });
+    } else {
+      setFormData({
+        id: '',
+        clientId: '',
+        processNumber: '',
+        title: '',
+        status: 'pending',
+        startDate: '',
+        lastUpdate: '',
+        description: '',
+        lawyer: user?.name || '',
+        updates: [],
+        situacaoPrisional: '',
+        comarcaVara: '',
+        tipoCrime: '',
+      });
+    }
+  }, [initialData, user]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit({ ...formData, lastUpdate: formData.startDate });
+    onOpenChange(false);
+  };
+
+  const handleCancel = () => {
     onOpenChange(false);
     setFormData({
       id: '',
@@ -66,12 +105,14 @@ export function ProcessForm({ isOpen, onOpenChange, onSubmit, clients, user }: P
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Cadastrar Novo Processo</DialogTitle>
-          <DialogDescription>Preencha os dados do processo jurídico</DialogDescription>
+          <DialogTitle>{initialData ? 'Editar Processo' : 'Cadastrar Novo Processo'}</DialogTitle>
+          <DialogDescription>
+            {initialData
+              ? 'Altere os dados do processo conforme necessário.'
+              : 'Preencha os dados do processo jurídico'}
+          </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-
-          {/* Cliente */}
           <div className="space-y-2">
             <Label htmlFor="clientId">Cliente</Label>
             <Select value={formData.clientId} onValueChange={(value) => setFormData({ ...formData, clientId: value })}>
@@ -88,7 +129,6 @@ export function ProcessForm({ isOpen, onOpenChange, onSubmit, clients, user }: P
             </Select>
           </div>
 
-          {/* Número do Processo */}
           <div className="space-y-2">
             <Label htmlFor="processNumber">Número do Processo</Label>
             <Input
@@ -100,7 +140,6 @@ export function ProcessForm({ isOpen, onOpenChange, onSubmit, clients, user }: P
             />
           </div>
 
-          {/* Título */}
           <div className="space-y-2">
             <Label htmlFor="title">Título do Processo</Label>
             <Input
@@ -112,7 +151,6 @@ export function ProcessForm({ isOpen, onOpenChange, onSubmit, clients, user }: P
             />
           </div>
 
-          {/* Status e Data */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="status">Status</Label>
@@ -141,7 +179,6 @@ export function ProcessForm({ isOpen, onOpenChange, onSubmit, clients, user }: P
             </div>
           </div>
 
-          {/* Advogado */}
           <div className="space-y-2">
             <Label htmlFor="lawyer">Advogado Responsável</Label>
             <Input
@@ -152,7 +189,6 @@ export function ProcessForm({ isOpen, onOpenChange, onSubmit, clients, user }: P
             />
           </div>
 
-          {/* Descrição */}
           <div className="space-y-2">
             <Label htmlFor="description">Descrição</Label>
             <Textarea
@@ -163,8 +199,6 @@ export function ProcessForm({ isOpen, onOpenChange, onSubmit, clients, user }: P
               required
             />
           </div>
-
-          {/* NOVOS CAMPOS ADICIONADOS */}
 
           <div className="space-y-2">
             <Label htmlFor="situacaoPrisional">Situação Prisional</Label>
@@ -196,35 +230,12 @@ export function ProcessForm({ isOpen, onOpenChange, onSubmit, clients, user }: P
             />
           </div>
 
-          {/* BOTÕES */}
           <div className="flex gap-2 pt-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => {
-                onOpenChange(false);
-                setFormData({
-                  id: '',
-                  clientId: '',
-                  processNumber: '',
-                  title: '',
-                  status: 'pending',
-                  startDate: '',
-                  lastUpdate: '',
-                  description: '',
-                  lawyer: user?.name || '',
-                  updates: [],
-                  situacaoPrisional: '',
-                  comarcaVara: '',
-                  tipoCrime: '',
-                });
-              }}
-              className="flex-1"
-            >
+            <Button type="button" variant="outline" onClick={handleCancel} className="flex-1">
               Cancelar
             </Button>
             <Button type="submit" className="flex-1 legal-gradient text-white">
-              Cadastrar
+              {initialData ? 'Salvar Alterações' : 'Cadastrar'}
             </Button>
           </div>
         </form>

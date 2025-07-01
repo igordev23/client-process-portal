@@ -1,50 +1,112 @@
-// src/components/process/ProcessManagement.tsx
 import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAuth, Process } from '@/contexts/AuthContext';
 import { ProcessForm } from './ProcessForm';
 import { ProcessCard } from './ProcessCard';
 import { ProcessUpdateDialog } from './ProcessUpdateDialog';
 import { ProcessFilter } from './ProcessFilter';
+import { toast } from '@/hooks/use-toast';
 
 export function ProcessManagement({ onBack }: { onBack: () => void }) {
   const { processes, clients, addProcess, updateProcess, addProcessUpdate, user } = useAuth();
+
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedProcess, setSelectedProcess] = useState<Process | null>(null);
+
   const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false);
 
+  // Filtrar processos conforme busca e status
   const filteredProcesses = processes.filter(process => {
+    if (process.deleted) return false; // Ignorar excluídos, se houver flag deleted
     const client = clients.find(c => c.id === process.clientId);
-    const matchesSearch = 
-      process.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      process.processNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      client?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    const lowerSearch = searchTerm.toLowerCase();
+    const matchesSearch =
+      process.title.toLowerCase().includes(lowerSearch) ||
+      process.processNumber.toLowerCase().includes(lowerSearch) ||
+      client?.name.toLowerCase().includes(lowerSearch) ||
       client?.cpf.includes(searchTerm);
     const matchesStatus = statusFilter === 'all' || process.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
+  // Abrir diálogo de edição e setar processo selecionado
+  const openEditDialog = (process: Process) => {
+    setSelectedProcess(process);
+    setIsEditDialogOpen(true);
+  };
+
+  // Abrir diálogo de atualização (novas atualizações do processo)
+  const openUpdateDialog = (process: Process) => {
+    setSelectedProcess(process);
+    setIsUpdateDialogOpen(true);
+  };
+
+  // Excluir processo (aqui removendo do estado via updateProcess com flag deleted)
+  const deleteProcess = (id: string) => {
+    updateProcess(id, { deleted: true });
+    toast({
+      title: 'Processo excluído',
+      description: 'O processo foi removido com sucesso.',
+    });
+  };
+
+  // Atualizar status do processo
+  const updateProcessStatus = (id: string, newStatus: Process['status']) => {
+    updateProcess(id, { status: newStatus });
+  };
+
+  // Submissão do formulário (adicionar ou editar)
+  const handleFormSubmit = (formData: Process) => {
+    if (isEditDialogOpen && selectedProcess) {
+      updateProcess(selectedProcess.id, formData);
+      toast({ title: 'Processo atualizado', description: 'Alterações salvas com sucesso.' });
+    } else {
+      addProcess(formData);
+      toast({ title: 'Processo cadastrado', description: 'Novo processo adicionado.' });
+    }
+    // Fechar diálogos e limpar seleção
+    setIsAddDialogOpen(false);
+    setIsEditDialogOpen(false);
+    setSelectedProcess(null);
+  };
+
+  // Fechar formulários e limpar estado
+  const handleCloseForm = () => {
+    setIsAddDialogOpen(false);
+    setIsEditDialogOpen(false);
+    setSelectedProcess(null);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <ProcessForm
-        isOpen={isAddDialogOpen}
-        onOpenChange={setIsAddDialogOpen}
-        onSubmit={addProcess}
+        isOpen={isAddDialogOpen || isEditDialogOpen}
+        onOpenChange={(open) => {
+          if (!open) handleCloseForm();
+        }}
+        onSubmit={handleFormSubmit}
         user={user}
         clients={clients}
+        initialData={isEditDialogOpen ? selectedProcess || undefined : undefined}
       />
 
       <ProcessUpdateDialog
         isOpen={isUpdateDialogOpen}
-        onOpenChange={setIsUpdateDialogOpen}
+        onOpenChange={(open) => {
+          if (!open) setSelectedProcess(null);
+          setIsUpdateDialogOpen(open);
+        }}
         process={selectedProcess}
         user={user}
         onSubmit={(update) => {
-          if (selectedProcess) addProcessUpdate(selectedProcess.id, update);
+          if (selectedProcess) {
+            addProcessUpdate(selectedProcess.id, update);
+            toast({ title: 'Atualização adicionada', description: 'Nova atualização adicionada ao processo.' });
+          }
         }}
       />
 
@@ -54,7 +116,10 @@ export function ProcessManagement({ onBack }: { onBack: () => void }) {
           onSearchChange={setSearchTerm}
           statusFilter={statusFilter}
           onStatusFilterChange={setStatusFilter}
-          onAddNew={() => setIsAddDialogOpen(true)}
+          onAddNew={() => {
+            setSelectedProcess(null);
+            setIsAddDialogOpen(true);
+          }}
           onBack={onBack}
         />
 
@@ -69,11 +134,10 @@ export function ProcessManagement({ onBack }: { onBack: () => void }) {
                   key={process.id}
                   process={process}
                   client={client}
-                  onStatusChange={(status) => updateProcess(process.id, { status })}
-                  onAddUpdate={() => {
-                    setSelectedProcess(process);
-                    setIsUpdateDialogOpen(true);
-                  }}
+                  onStatusChange={(newStatus) => updateProcessStatus(process.id, newStatus)}
+                  onAddUpdate={() => openUpdateDialog(process)}
+                  onEdit={() => openEditDialog(process)}
+                  onDelete={() => deleteProcess(process.id)}
                 />
               );
             })
