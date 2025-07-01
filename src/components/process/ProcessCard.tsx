@@ -53,6 +53,7 @@ export function ProcessCard({
                 {getStatusText(process.status)}
               </Badge>
             </div>
+            
 
             <div className="space-y-2 text-sm text-gray-600">
               <p><strong>Processo:</strong> {process.processNumber}</p>
