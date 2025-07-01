@@ -1,7 +1,7 @@
 // src/components/process/ProcessForm.tsx
 import React, { useState } from 'react';
 import {
-  Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger
+  Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,7 +21,11 @@ interface Props {
 }
 
 export function ProcessForm({ isOpen, onOpenChange, onSubmit, clients, user }: Props) {
-  const [formData, setFormData] = useState<Process>({
+  const [formData, setFormData] = useState<Process & {
+    situacaoPrisional: string;
+    comarcaVara: string;
+    tipoCrime: string;
+  }>({
     id: '',
     clientId: '',
     processNumber: '',
@@ -32,6 +36,9 @@ export function ProcessForm({ isOpen, onOpenChange, onSubmit, clients, user }: P
     description: '',
     lawyer: user?.name || '',
     updates: [],
+    situacaoPrisional: '',
+    comarcaVara: '',
+    tipoCrime: '',
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -49,20 +56,22 @@ export function ProcessForm({ isOpen, onOpenChange, onSubmit, clients, user }: P
       description: '',
       lawyer: user?.name || '',
       updates: [],
+      situacaoPrisional: '',
+      comarcaVara: '',
+      tipoCrime: '',
     });
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogTrigger asChild>
-        
-      </DialogTrigger>
       <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Cadastrar Novo Processo</DialogTitle>
           <DialogDescription>Preencha os dados do processo jurídico</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
+
+          {/* Cliente */}
           <div className="space-y-2">
             <Label htmlFor="clientId">Cliente</Label>
             <Select value={formData.clientId} onValueChange={(value) => setFormData({ ...formData, clientId: value })}>
@@ -79,6 +88,7 @@ export function ProcessForm({ isOpen, onOpenChange, onSubmit, clients, user }: P
             </Select>
           </div>
 
+          {/* Número do Processo */}
           <div className="space-y-2">
             <Label htmlFor="processNumber">Número do Processo</Label>
             <Input
@@ -90,6 +100,7 @@ export function ProcessForm({ isOpen, onOpenChange, onSubmit, clients, user }: P
             />
           </div>
 
+          {/* Título */}
           <div className="space-y-2">
             <Label htmlFor="title">Título do Processo</Label>
             <Input
@@ -101,6 +112,7 @@ export function ProcessForm({ isOpen, onOpenChange, onSubmit, clients, user }: P
             />
           </div>
 
+          {/* Status e Data */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="status">Status</Label>
@@ -129,6 +141,7 @@ export function ProcessForm({ isOpen, onOpenChange, onSubmit, clients, user }: P
             </div>
           </div>
 
+          {/* Advogado */}
           <div className="space-y-2">
             <Label htmlFor="lawyer">Advogado Responsável</Label>
             <Input
@@ -139,6 +152,7 @@ export function ProcessForm({ isOpen, onOpenChange, onSubmit, clients, user }: P
             />
           </div>
 
+          {/* Descrição */}
           <div className="space-y-2">
             <Label htmlFor="description">Descrição</Label>
             <Textarea
@@ -150,6 +164,39 @@ export function ProcessForm({ isOpen, onOpenChange, onSubmit, clients, user }: P
             />
           </div>
 
+          {/* NOVOS CAMPOS ADICIONADOS */}
+
+          <div className="space-y-2">
+            <Label htmlFor="situacaoPrisional">Situação Prisional</Label>
+            <Input
+              id="situacaoPrisional"
+              placeholder="Ex: Preso preventivamente, em liberdade provisória..."
+              value={formData.situacaoPrisional}
+              onChange={(e) => setFormData({ ...formData, situacaoPrisional: e.target.value })}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="comarcaVara">Comarca / Vara</Label>
+            <Input
+              id="comarcaVara"
+              placeholder="Informe a comarca ou vara responsável"
+              value={formData.comarcaVara}
+              onChange={(e) => setFormData({ ...formData, comarcaVara: e.target.value })}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="tipoCrime">Tipo de Crime</Label>
+            <Input
+              id="tipoCrime"
+              placeholder="Informe o tipo de crime do processo"
+              value={formData.tipoCrime}
+              onChange={(e) => setFormData({ ...formData, tipoCrime: e.target.value })}
+            />
+          </div>
+
+          {/* BOTÕES */}
           <div className="flex gap-2 pt-4">
             <Button
               type="button"
@@ -167,6 +214,9 @@ export function ProcessForm({ isOpen, onOpenChange, onSubmit, clients, user }: P
                   description: '',
                   lawyer: user?.name || '',
                   updates: [],
+                  situacaoPrisional: '',
+                  comarcaVara: '',
+                  tipoCrime: '',
                 });
               }}
               className="flex-1"

@@ -51,6 +51,11 @@ export function ProcessCard({ process, client, onStatusChange, onAddUpdate }: Pr
               <p><strong>Advogado:</strong> {process.lawyer}</p>
               <p><strong>Início:</strong> {new Date(process.startDate).toLocaleDateString('pt-BR')}</p>
               <p><strong>Última Atualização:</strong> {new Date(process.lastUpdate).toLocaleDateString('pt-BR')}</p>
+
+              {/* Novos campos */}
+              <p><strong>Situação Prisional:</strong> {process.situacaoPrisional || '—'}</p>
+              <p><strong>Comarca / Vara:</strong> {process.comarcaVara || '—'}</p>
+              <p><strong>Tipo de Crime:</strong> {process.tipoCrime || '—'}</p>
             </div>
 
             <div className="mt-3">
