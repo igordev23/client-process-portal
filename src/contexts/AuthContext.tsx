@@ -65,13 +65,23 @@ interface AuthContextType {
   getClientProcesses: (clientId: string) => Process[];
   updateProcessUpdate: (processId: string, updateId: string, newUpdate: Partial<ProcessUpdate>) => void;
   deleteProcessUpdate: (processId: string, updateId: string) => void;
-  addTipoCrime: (value: string) => void;
-  addComarcaVara: (value: string) => void;
-  addSituacaoPrisional: (value: string) => void;
+
   tipoCrimes: string[];
+  addTipoCrime: (value: string) => void;
+  removeTipoCrime: (value: string) => void;
+  editTipoCrime: (oldValue: string, newValue: string) => void;
+
   comarcasVaras: string[];
+  addComarcaVara: (value: string) => void;
+  removeComarcaVara: (value: string) => void;
+  editComarcaVara: (oldValue: string, newValue: string) => void;
+
   situacoesPrisionais: string[];
+  addSituacaoPrisional: (value: string) => void;
+  removeSituacaoPrisional: (value: string) => void;
+  editSituacaoPrisional: (oldValue: string, newValue: string) => void;
 }
+
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -172,6 +182,8 @@ const initialProcesses: Process[] = [
     tipoCrime: 'Trabalhista',
   },
 ];
+
+
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -354,32 +366,87 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.setItem('situacoesPrisionais', JSON.stringify(updated));
     }
   };
+  // Dentro do AuthProvider, após os states:
+
+// --- Tipo Crime ---
+
+
+const removeTipoCrime = (nome: string) => {
+  const updated = tipoCrimes.filter(item => item !== nome);
+  setTipoCrimes(updated);
+  localStorage.setItem('tipoCrimes', JSON.stringify(updated));
+};
+
+const editTipoCrime = (oldName: string, newName: string) => {
+  const updated = tipoCrimes.map(item => (item === oldName ? newName : item));
+  setTipoCrimes(updated);
+  localStorage.setItem('tipoCrimes', JSON.stringify(updated));
+};
+
+
+
+const removeComarcaVara = (nome: string) => {
+  const updated = comarcasVaras.filter(item => item !== nome);
+  setComarcasVaras(updated);
+  localStorage.setItem('comarcasVaras', JSON.stringify(updated));
+};
+
+const editComarcaVara = (oldName: string, newName: string) => {
+  const updated = comarcasVaras.map(item => (item === oldName ? newName : item));
+  setComarcasVaras(updated);
+  localStorage.setItem('comarcasVaras', JSON.stringify(updated));
+};
+
+
+
+const removeSituacaoPrisional = (nome: string) => {
+  const updated = situacoesPrisionais.filter(item => item !== nome);
+  setSituacoesPrisionais(updated);
+  localStorage.setItem('situacoesPrisionais', JSON.stringify(updated));
+};
+
+const editSituacaoPrisional = (oldName: string, newName: string) => {
+  const updated = situacoesPrisionais.map(item => (item === oldName ? newName : item));
+  setSituacoesPrisionais(updated);
+  localStorage.setItem('situacoesPrisionais', JSON.stringify(updated));
+};
+
 
   const value: AuthContextType = {
-    user,
-    login,
-    logout,
-    isAuthenticated: !!user,
-    clients,
-    processes,
-    users,
-    addClient,
-    updateClient,
-    deleteClient,
-    addProcess,
-    updateProcess,
-    deleteProcess,
-    addProcessUpdate,
-    getClientProcesses,
-    updateProcessUpdate,
-    deleteProcessUpdate,
-    addTipoCrime,
-    addComarcaVara,
-    addSituacaoPrisional,
-    tipoCrimes,
-    comarcasVaras,
-    situacoesPrisionais,
-  };
+  user,
+  login,
+  logout,
+  isAuthenticated: !!user,
+  clients,
+  processes,
+  users,
+  addClient,
+  updateClient,
+  deleteClient,
+  addProcess,
+  updateProcess,
+  deleteProcess,
+  addProcessUpdate,
+  getClientProcesses,
+  updateProcessUpdate,
+  deleteProcessUpdate,
+
+  tipoCrimes,
+  addTipoCrime,
+  removeTipoCrime,
+  editTipoCrime,
+
+  comarcasVaras,
+  addComarcaVara,
+  removeComarcaVara,
+  editComarcaVara,
+
+  situacoesPrisionais,
+  addSituacaoPrisional,
+  removeSituacaoPrisional,
+  editSituacaoPrisional,
+};
+
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
