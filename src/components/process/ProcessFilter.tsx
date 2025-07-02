@@ -10,6 +10,7 @@ interface ProcessFilterProps {
   onStatusFilterChange: (status: string) => void;
   onAddNew: () => void;
   onBack: () => void;
+  onExport: () => void;
 }
 
 export function ProcessFilter({
@@ -19,6 +20,7 @@ export function ProcessFilter({
   onStatusFilterChange,
   onAddNew,
   onBack,
+  onExport,
 }: ProcessFilterProps) {
   return (
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -58,7 +60,16 @@ export function ProcessFilter({
           </svg>
           Novo Processo
         </Button>
+
+        <Button onClick={onExport} className="bg-blue-500 text-white hover:bg-blue-600">
+          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7" />
+          </svg>
+          Exportar
+        </Button>
       </div>
+
+
     </div>
   );
 }

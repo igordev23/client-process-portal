@@ -1,13 +1,11 @@
-// src/components/process/ProcessManagement.tsx
 import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAuth, Process } from '@/contexts/AuthContext';
 import { ProcessForm } from './ProcessForm';
 import { ProcessCard } from './ProcessCard';
 import { ProcessUpdateDialog } from './ProcessUpdateDialog';
 import { ProcessFilter } from './ProcessFilter';
+import { exportProcessesToExcel } from '@/lib/export/processExporter'; // ⬅️ função de exportação
 
 export function ProcessManagement({ onBack }: { onBack: () => void }) {
   const { processes, clients, addProcess, updateProcess, addProcessUpdate, user } = useAuth();
@@ -56,6 +54,7 @@ export function ProcessManagement({ onBack }: { onBack: () => void }) {
           onStatusFilterChange={setStatusFilter}
           onAddNew={() => setIsAddDialogOpen(true)}
           onBack={onBack}
+          onExport={() => exportProcessesToExcel(filteredProcesses, clients)}
         />
 
         <div className="grid gap-4 mt-6">
