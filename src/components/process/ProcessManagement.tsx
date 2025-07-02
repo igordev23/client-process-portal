@@ -6,6 +6,7 @@ import { ProcessCard } from './ProcessCard';
 import { ProcessUpdateDialog } from './ProcessUpdateDialog';
 import { ProcessFilter } from './ProcessFilter';
 import { exportProcessesToExcel } from '@/lib/export/processExporter'; // ⬅️ função de exportação
+import { toast } from '@/hooks/use-toast';
 
 export function ProcessManagement({ onBack }: { onBack: () => void }) {
   const { processes, clients, addProcess, updateProcess, addProcessUpdate, user } = useAuth();
