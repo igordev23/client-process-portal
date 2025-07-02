@@ -24,6 +24,13 @@ export interface Client {
   updatedAt: string;
 }
 
+export interface ProcessUpdate {
+  id: string;
+  date: string;
+  description: string;
+  author: string;
+}
+
 export interface Process {
   id: string;
   clientId: string;
@@ -35,16 +42,9 @@ export interface Process {
   description: string;
   lawyer: string;
   updates: ProcessUpdate[];
-  prisonStatus?: string;
-  court?: string;
-  crimeType?: string;
-}
-
-export interface ProcessUpdate {
-  id: string;
-  date: string;
-  description: string;
-  author: string;
+  situacaoPrisional?: string;
+  comarcaVara?: string;
+  tipoCrime?: string;
 }
 
 interface AuthContextType {
@@ -65,10 +65,17 @@ interface AuthContextType {
   getClientProcesses: (clientId: string) => Process[];
   updateProcessUpdate: (processId: string, updateId: string, newUpdate: Partial<ProcessUpdate>) => void;
   deleteProcessUpdate: (processId: string, updateId: string) => void;
+  addTipoCrime: (value: string) => void;
+  addComarcaVara: (value: string) => void;
+  addSituacaoPrisional: (value: string) => void;
+  tipoCrimes: string[];
+  comarcasVaras: string[];
+  situacoesPrisionais: string[];
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Dados iniciais
 const initialUsers: User[] = [
   {
     id: '1',
@@ -138,9 +145,9 @@ const initialProcesses: Process[] = [
         author: 'João Santos',
       },
     ],
-    prisonStatus: 'Preso preventivamente',
-    court: 'Vara Criminal de São Paulo',
-    crimeType: 'Receptação',
+    situacaoPrisional: 'Preso preventivamente',
+    comarcaVara: 'Vara Criminal de São Paulo',
+    tipoCrime: 'Receptação',
   },
   {
     id: '2',
@@ -160,9 +167,9 @@ const initialProcesses: Process[] = [
         author: 'Dra. Maria Silva',
       },
     ],
-    prisonStatus: 'Em liberdade',
-    court: '2ª Vara do Trabalho de SP',
-    crimeType: 'Trabalhista',
+    situacaoPrisional: 'Em liberdade',
+    comarcaVara: '2ª Vara do Trabalho de SP',
+    tipoCrime: 'Trabalhista',
   },
 ];
 
@@ -172,24 +179,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [processes, setProcesses] = useState<Process[]>([]);
   const [users, setUsers] = useState<User[]>([]);
 
+  const [tipoCrimes, setTipoCrimes] = useState<string[]>([]);
+  const [comarcasVaras, setComarcasVaras] = useState<string[]>([]);
+  const [situacoesPrisionais, setSituacoesPrisionais] = useState<string[]>([]);
+
   useEffect(() => {
     const storedUser = localStorage.getItem('currentUser');
     const storedClients = localStorage.getItem('clients');
     const storedProcesses = localStorage.getItem('processes');
     const storedUsers = localStorage.getItem('users');
 
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-
+    if (storedUser) setUser(JSON.parse(storedUser));
     setClients(storedClients ? JSON.parse(storedClients) : initialClients);
     setProcesses(storedProcesses ? JSON.parse(storedProcesses) : initialProcesses);
     setUsers(storedUsers ? JSON.parse(storedUsers) : initialUsers);
+
+    const storedTipoCrimes = localStorage.getItem('tipoCrimes');
+    const storedComarcasVaras = localStorage.getItem('comarcasVaras');
+    const storedSituacoesPrisionais = localStorage.getItem('situacoesPrisionais');
+
+    if (storedTipoCrimes) setTipoCrimes(JSON.parse(storedTipoCrimes));
+    if (storedComarcasVaras) setComarcasVaras(JSON.parse(storedComarcasVaras));
+    if (storedSituacoesPrisionais) setSituacoesPrisionais(JSON.parse(storedSituacoesPrisionais));
   }, []);
 
   const login = async (email: string, password: string): Promise<boolean> => {
     const foundUser = users.find(u => u.email === email);
-
     if (foundUser && password === '123456') {
       setUser(foundUser);
       localStorage.setItem('currentUser', JSON.stringify(foundUser));
@@ -222,11 +237,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
-
     const updatedClients = [...clients, newClient];
     setClients(updatedClients);
     localStorage.setItem('clients', JSON.stringify(updatedClients));
-
     toast({ title: 'Cliente cadastrado', description: `Cliente ${newClient.name} cadastrado com chave de acesso: ${newClient.accessKey}` });
   };
 
@@ -236,7 +249,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     );
     setClients(updatedClients);
     localStorage.setItem('clients', JSON.stringify(updatedClients));
-
     toast({ title: 'Cliente atualizado', description: 'Dados do cliente foram atualizados com sucesso' });
   };
 
@@ -245,11 +257,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       toast({ title: 'Acesso negado', description: 'Apenas administradores podem excluir clientes', variant: 'destructive' });
       return;
     }
-
     const updatedClients = clients.filter(client => client.id !== id);
     setClients(updatedClients);
     localStorage.setItem('clients', JSON.stringify(updatedClients));
-
     toast({ title: 'Cliente removido', description: 'Cliente foi removido do sistema' });
   };
 
@@ -259,11 +269,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       id: Date.now().toString(),
       updates: [],
     };
-
     const updatedProcesses = [...processes, newProcess];
     setProcesses(updatedProcesses);
     localStorage.setItem('processes', JSON.stringify(updatedProcesses));
-
     toast({ title: 'Processo cadastrado', description: `Processo ${newProcess.processNumber} foi cadastrado` });
   };
 
@@ -273,7 +281,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     );
     setProcesses(updatedProcesses);
     localStorage.setItem('processes', JSON.stringify(updatedProcesses));
-
     toast({ title: 'Processo atualizado', description: 'Dados do processo foram atualizados' });
   };
 
@@ -285,20 +292,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const addProcessUpdate = (processId: string, updateData: Omit<ProcessUpdate, 'id'>) => {
-    const newUpdate: ProcessUpdate = {
-      ...updateData,
-      id: Date.now().toString(),
-    };
-
+    const newUpdate: ProcessUpdate = { ...updateData, id: Date.now().toString() };
     const updatedProcesses = processes.map(process =>
       process.id === processId
         ? { ...process, updates: [...process.updates, newUpdate], lastUpdate: newUpdate.date }
         : process
     );
-
     setProcesses(updatedProcesses);
     localStorage.setItem('processes', JSON.stringify(updatedProcesses));
-
     toast({ title: 'Atualização adicionada', description: 'Nova atualização foi adicionada ao processo' });
   };
 
@@ -306,30 +307,53 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return processes.filter(process => process.clientId === clientId);
   };
 
-
   const updateProcessUpdate = (processId: string, updateId: string, newUpdate: Partial<ProcessUpdate>) => {
-  const updatedProcesses = processes.map((process) => {
-    if (process.id !== processId) return process;
-    const updatedUpdates = process.updates.map((u) =>
-      u.id === updateId ? { ...u, ...newUpdate } : u
-    );
-    return { ...process, updates: updatedUpdates };
-  });
-  setProcesses(updatedProcesses);
-  localStorage.setItem('processes', JSON.stringify(updatedProcesses));
-  toast({ title: 'Atualização editada', description: 'A atualização foi alterada.' });
-};
+    const updatedProcesses = processes.map(process => {
+      if (process.id !== processId) return process;
+      const updatedUpdates = process.updates.map(update =>
+        update.id === updateId ? { ...update, ...newUpdate } : update
+      );
+      return { ...process, updates: updatedUpdates };
+    });
+    setProcesses(updatedProcesses);
+    localStorage.setItem('processes', JSON.stringify(updatedProcesses));
+    toast({ title: 'Atualização editada', description: 'A atualização foi alterada.' });
+  };
 
-const deleteProcessUpdate = (processId: string, updateId: string) => {
-  const updatedProcesses = processes.map((process) => {
-    if (process.id !== processId) return process;
-    const updatedUpdates = process.updates.filter((u) => u.id !== updateId);
-    return { ...process, updates: updatedUpdates };
-  });
-  setProcesses(updatedProcesses);
-  localStorage.setItem('processes', JSON.stringify(updatedProcesses));
-  toast({ title: 'Atualização excluída', description: 'A atualização foi removida.' });
-};
+  const deleteProcessUpdate = (processId: string, updateId: string) => {
+    const updatedProcesses = processes.map(process => {
+      if (process.id !== processId) return process;
+      const updatedUpdates = process.updates.filter(update => update.id !== updateId);
+      return { ...process, updates: updatedUpdates };
+    });
+    setProcesses(updatedProcesses);
+    localStorage.setItem('processes', JSON.stringify(updatedProcesses));
+    toast({ title: 'Atualização excluída', description: 'A atualização foi removida.' });
+  };
+
+  const addTipoCrime = (value: string) => {
+    if (!tipoCrimes.includes(value)) {
+      const updated = [...tipoCrimes, value];
+      setTipoCrimes(updated);
+      localStorage.setItem('tipoCrimes', JSON.stringify(updated));
+    }
+  };
+
+  const addComarcaVara = (value: string) => {
+    if (!comarcasVaras.includes(value)) {
+      const updated = [...comarcasVaras, value];
+      setComarcasVaras(updated);
+      localStorage.setItem('comarcasVaras', JSON.stringify(updated));
+    }
+  };
+
+  const addSituacaoPrisional = (value: string) => {
+    if (!situacoesPrisionais.includes(value)) {
+      const updated = [...situacoesPrisionais, value];
+      setSituacoesPrisionais(updated);
+      localStorage.setItem('situacoesPrisionais', JSON.stringify(updated));
+    }
+  };
 
   const value: AuthContextType = {
     user,
@@ -349,7 +373,12 @@ const deleteProcessUpdate = (processId: string, updateId: string) => {
     getClientProcesses,
     updateProcessUpdate,
     deleteProcessUpdate,
-
+    addTipoCrime,
+    addComarcaVara,
+    addSituacaoPrisional,
+    tipoCrimes,
+    comarcasVaras,
+    situacoesPrisionais,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
