@@ -6,6 +6,8 @@ import { ProcessCard } from './ProcessCard';
 import { ProcessUpdateDialog } from './ProcessUpdateDialog';
 import { ProcessFilter } from './ProcessFilter';
 import { toast } from '@/hooks/use-toast';
+import { exportProcessesToExcel } from '@/lib/export/processExporter'; //função de exportar
+
 
 export function ProcessManagement({ onBack }: { onBack: () => void }) {
   const { processes, clients, addProcess, updateProcess, addProcessUpdate, user } = useAuth();
@@ -121,6 +123,7 @@ export function ProcessManagement({ onBack }: { onBack: () => void }) {
             setIsAddDialogOpen(true);
           }}
           onBack={onBack}
+          onExport={() => exportProcessesToExcel(filteredProcesses, clients)}
         />
 
         <div className="grid gap-4 mt-6">
