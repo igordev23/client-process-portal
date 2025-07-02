@@ -10,9 +10,18 @@ interface ProcessCardProps {
   client?: { name: string; cpf: string };
   onStatusChange: (status: Process['status']) => void;
   onAddUpdate: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
 }
 
-export function ProcessCard({ process, client, onStatusChange, onAddUpdate }: ProcessCardProps) {
+export function ProcessCard({
+  process,
+  client,
+  onStatusChange,
+  onAddUpdate,
+  onEdit,
+  onDelete,
+}: ProcessCardProps) {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active': return 'bg-blue-100 text-blue-800';
@@ -51,8 +60,6 @@ export function ProcessCard({ process, client, onStatusChange, onAddUpdate }: Pr
               <p><strong>Advogado:</strong> {process.lawyer}</p>
               <p><strong>Início:</strong> {new Date(process.startDate).toLocaleDateString('pt-BR')}</p>
               <p><strong>Última Atualização:</strong> {new Date(process.lastUpdate).toLocaleDateString('pt-BR')}</p>
-
-              {/* Novos campos */}
               <p><strong>Situação Prisional:</strong> {process.situacaoPrisional || '—'}</p>
               <p><strong>Comarca / Vara:</strong> {process.comarcaVara || '—'}</p>
               <p><strong>Tipo de Crime:</strong> {process.tipoCrime || '—'}</p>
@@ -106,6 +113,28 @@ export function ProcessCard({ process, client, onStatusChange, onAddUpdate }: Pr
               className="w-full lg:w-48"
             >
               Adicionar Atualização
+            </Button>
+
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={onEdit}
+              className="w-full lg:w-48"
+            >
+              Editar Processo
+            </Button>
+
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => {
+                if (confirm('Tem certeza que deseja excluir este processo?')) {
+                  onDelete();
+                }
+              }}
+              className="w-full lg:w-48"
+            >
+              Excluir
             </Button>
           </div>
         </div>
