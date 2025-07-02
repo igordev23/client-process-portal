@@ -5,8 +5,8 @@ import { ProcessForm } from './ProcessForm';
 import { ProcessCard } from './ProcessCard';
 import { ProcessUpdateDialog } from './ProcessUpdateDialog';
 import { ProcessFilter } from './ProcessFilter';
-import { exportProcessesToExcel } from '@/lib/export/processExporter'; //função de exportar
 import { toast } from '@/hooks/use-toast';
+import { exportProcessesToExcel } from '@/lib/export/processExporter'; //função de exportar
 
 
 export function ProcessManagement({ onBack }: { onBack: () => void }) {
