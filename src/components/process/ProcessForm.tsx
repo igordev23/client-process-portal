@@ -6,6 +6,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { SelectWithSearch } from '@/components/ui/SelectWithSearch';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue
 } from '@/components/ui/select';
@@ -161,34 +162,26 @@ const [clientDialogOpen, setClientDialogOpen] = useState(false);
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <Label htmlFor="clientId">Cliente</Label>
-              <Button
-                type="button"
-                variant="link"
-                className="text-blue-600 text-sm p-0 h-auto"
-                onClick={() => setClientDialogOpen(true)}
-              >
-                + Novo Cliente
-              </Button>
-            </div>
+   <SelectWithSearch
+      label="Cliente"
+      value={formData.clientId}
+      onChange={(value) => setFormData({ ...formData, clientId: value })}
+      options={clients.map((client) => ({
+        id: client.id,
+        label: `${client.name} - ${client.cpf}`
+      }))}
+    />
 
-            <Select
-  value={formData.clientId || undefined} // ⚠️ undefined evita warning
-  onValueChange={(value) => setFormData({ ...formData, clientId: value })}
->
-  <SelectTrigger>
-    <SelectValue placeholder="Selecione o cliente" />
-  </SelectTrigger>
-  <SelectContent>
-    {clients.map((client) => (
-      <SelectItem key={client.id} value={client.id}>
-        {client.name} - {client.cpf}
-      </SelectItem>
-    ))}
-  </SelectContent>
-</Select>
-
-          </div>
+    <Button
+      type="button"
+      variant="link"
+      className="text-blue-600 text-sm p-0 h-auto"
+      onClick={() => setClientDialogOpen(true)}
+    >
+      + Novo Cliente
+    </Button>
+  </div>
+</div>
 
           <div className="space-y-2">
             <Label htmlFor="processNumber">Número do Processo</Label>
