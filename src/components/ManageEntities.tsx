@@ -3,7 +3,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
 
 export function ManageEntities({ onBack }: { onBack: () => void }) {
   const {
@@ -23,32 +22,42 @@ export function ManageEntities({ onBack }: { onBack: () => void }) {
   const [activeTab, setActiveTab] = useState<EntityType>('tipoCrime');
   const [editIndex, setEditIndex] = useState<number | null>(null);
   const [editValue, setEditValue] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
 
   const getCurrentList = () => {
     switch (activeTab) {
-      case 'tipoCrime': return tipoCrimes;
-      case 'comarcaVara': return comarcasVaras;
-      case 'situacaoPrisional': return situacoesPrisionais;
+      case 'tipoCrime':
+        return tipoCrimes;
+      case 'comarcaVara':
+        return comarcasVaras;
+      case 'situacaoPrisional':
+        return situacoesPrisionais;
     }
   };
 
+  const filteredList = getCurrentList().filter((item) =>
+    item.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   const startEditing = (index: number) => {
     setEditIndex(index);
-    setEditValue(getCurrentList()[index]);
+    setEditValue(filteredList[index]); // pegar da lista filtrada
   };
 
   const saveEdit = () => {
     if (editIndex === null || editValue.trim() === '') return;
 
+    const originalIndex = getCurrentList().indexOf(filteredList[editIndex]);
+
     switch (activeTab) {
       case 'tipoCrime':
-        editTipoCrime(getCurrentList()[editIndex], editValue.trim());
+        editTipoCrime(getCurrentList()[originalIndex], editValue.trim());
         break;
       case 'comarcaVara':
-        editComarcaVara(getCurrentList()[editIndex], editValue.trim());
+        editComarcaVara(getCurrentList()[originalIndex], editValue.trim());
         break;
       case 'situacaoPrisional':
-        editSituacaoPrisional(getCurrentList()[editIndex], editValue.trim());
+        editSituacaoPrisional(getCurrentList()[originalIndex], editValue.trim());
         break;
     }
     setEditIndex(null);
@@ -71,9 +80,12 @@ export function ManageEntities({ onBack }: { onBack: () => void }) {
 
   const getTitle = () => {
     switch (activeTab) {
-      case 'tipoCrime': return 'Tipos de Crime';
-      case 'comarcaVara': return 'Comarcas / Varas';
-      case 'situacaoPrisional': return 'Situações Prisionais';
+      case 'tipoCrime':
+        return 'Tipos de Crime';
+      case 'comarcaVara':
+        return 'Comarcas / Varas';
+      case 'situacaoPrisional':
+        return 'Situações Prisionais';
     }
   };
 
@@ -84,22 +96,35 @@ export function ManageEntities({ onBack }: { onBack: () => void }) {
         <Button variant="outline" onClick={onBack}>Dashboard</Button>
       </div>
 
-      <div className="flex gap-4 mb-6">
+      {/* Tabs */}
+      <div className="flex gap-4 mb-4">
         <Button
           variant={activeTab === 'tipoCrime' ? 'default' : 'outline'}
-          onClick={() => { setActiveTab('tipoCrime'); setEditIndex(null); }}
+          onClick={() => {
+            setActiveTab('tipoCrime');
+            setEditIndex(null);
+            setSearchTerm(''); // limpa busca ao trocar
+          }}
         >
           Tipos de Crime
         </Button>
         <Button
           variant={activeTab === 'comarcaVara' ? 'default' : 'outline'}
-          onClick={() => { setActiveTab('comarcaVara'); setEditIndex(null); }}
+          onClick={() => {
+            setActiveTab('comarcaVara');
+            setEditIndex(null);
+            setSearchTerm('');
+          }}
         >
           Comarcas / Varas
         </Button>
         <Button
           variant={activeTab === 'situacaoPrisional' ? 'default' : 'outline'}
-          onClick={() => { setActiveTab('situacaoPrisional'); setEditIndex(null); }}
+          onClick={() => {
+            setActiveTab('situacaoPrisional');
+            setEditIndex(null);
+            setSearchTerm('');
+          }}
         >
           Situações Prisionais
         </Button>
@@ -108,29 +133,50 @@ export function ManageEntities({ onBack }: { onBack: () => void }) {
       <Card>
         <CardHeader>
           <CardTitle>{getTitle()}</CardTitle>
+          <Input
+            placeholder="Pesquisar..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="mt-2"
+          />
         </CardHeader>
         <CardContent className="space-y-2">
-          {getCurrentList().map((item, i) => (
-            <div key={item} className="flex items-center gap-2">
-              {editIndex === i ? (
-                <>
-                  <Input
-                    value={editValue}
-                    onChange={(e) => setEditValue(e.target.value)}
-                    className="flex-1"
-                  />
-                  <Button onClick={saveEdit}>Salvar</Button>
-                  <Button variant="outline" onClick={() => setEditIndex(null)}>Cancelar</Button>
-                </>
-              ) : (
-                <>
-                  <span className="flex-1 text-sm text-gray-800">{item}</span>
-                  <Button size="sm" onClick={() => startEditing(i)}>Editar</Button>
-                  <Button size="sm" variant="destructive" onClick={() => handleRemove(item)}>Excluir</Button>
-                </>
-              )}
-            </div>
-          ))}
+          {filteredList.length > 0 ? (
+            filteredList.map((item, i) => (
+              <div key={item} className="flex items-center gap-2">
+                {editIndex === i ? (
+                  <>
+                    <Input
+                      value={editValue}
+                      onChange={(e) => setEditValue(e.target.value)}
+                      className="flex-1"
+                    />
+                    <Button onClick={saveEdit}>Salvar</Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => setEditIndex(null)}
+                    >
+                      Cancelar
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <span className="flex-1 text-sm text-gray-800">{item}</span>
+                    <Button size="sm" onClick={() => startEditing(i)}>Editar</Button>
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={() => handleRemove(item)}
+                    >
+                      Excluir
+                    </Button>
+                  </>
+                )}
+              </div>
+            ))
+          ) : (
+            <p className="text-gray-500 text-sm">Nenhum item encontrado.</p>
+          )}
         </CardContent>
       </Card>
     </div>
