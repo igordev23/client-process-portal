@@ -1,8 +1,15 @@
 // src/components/ui/SelectWithAdd.tsx
-import React, { useState } from 'react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
+import React, { useState } from "react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 interface Props {
   label: string;
@@ -13,7 +20,18 @@ interface Props {
 }
 
 export function SelectWithAdd({ label, value, onChange, options, onAdd }: Props) {
-  const [newOption, setNewOption] = useState('');
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [newOption, setNewOption] = useState("");
+
+  const handleAdd = () => {
+    const trimmed = newOption.trim();
+    if (trimmed && !options.includes(trimmed)) {
+      onAdd(trimmed);
+      onChange(trimmed); // Seleciona automaticamente o novo item
+      setNewOption("");
+      setDialogOpen(false);
+    }
+  };
 
   return (
     <div className="space-y-2">
@@ -31,24 +49,49 @@ export function SelectWithAdd({ label, value, onChange, options, onAdd }: Props)
             ))}
           </SelectContent>
         </Select>
-        <Button
-          type="button"
-          onClick={() => {
-            if (newOption.trim()) {
-              onAdd(newOption.trim());
-              onChange(newOption.trim());
-              setNewOption('');
-            }
-          }}
-        >
-          +
-        </Button>
+
+        {/* Botão para abrir o Dialog */}
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <DialogTrigger asChild>
+            <Button type="button" variant="outline" size="icon">
+              +
+            </Button>
+          </DialogTrigger>
+
+          <DialogContent className="sm:max-w-[400px]">
+            <DialogHeader>
+              <DialogTitle>Adicionar {label}</DialogTitle>
+            </DialogHeader>
+
+            <div className="space-y-4">
+              <Input
+                placeholder={`Nova ${label.toLowerCase()}`}
+                value={newOption}
+                onChange={(e) => setNewOption(e.target.value)}
+                autoFocus
+              />
+              <div className="flex justify-end gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setNewOption("");
+                    setDialogOpen(false);
+                  }}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  onClick={handleAdd}
+                  disabled={!newOption.trim() || options.includes(newOption.trim())}
+                  className="legal-gradient text-white"
+                >
+                  Salvar
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
-      <Input
-        placeholder={`Novo ${label.toLowerCase()}`}
-        value={newOption}
-        onChange={(e) => setNewOption(e.target.value)}
-      />
     </div>
   );
 }

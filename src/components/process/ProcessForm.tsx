@@ -69,15 +69,18 @@ export function ProcessForm({
     tipoCrime: '',
   });
 
-  useEffect(() => {
+ useEffect(() => {
+  if (isOpen) {
     if (initialData) {
+      // Preenche com os dados do processo selecionado
       setFormData({
         ...initialData,
-        situacaoPrisional: (initialData as any).situacaoPrisional || '',
-        comarcaVara: (initialData as any).comarcaVara || '',
-        tipoCrime: (initialData as any).tipoCrime || '',
+        situacaoPrisional: initialData.situacaoPrisional || '',
+        comarcaVara: initialData.comarcaVara || '',
+        tipoCrime: initialData.tipoCrime || '',
       });
     } else {
+      // Reseta o formulário para cadastro
       setFormData({
         id: '',
         clientId: '',
@@ -88,13 +91,15 @@ export function ProcessForm({
         lastUpdate: '',
         description: '',
         lawyer: user?.name || '',
-        updates: [],
         situacaoPrisional: '',
         comarcaVara: '',
         tipoCrime: '',
+        updates: [],
       });
     }
-  }, [initialData, user]);
+  }
+}, [isOpen, initialData]); // ✅ Inclua o initialData
+
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -168,20 +173,21 @@ const [clientDialogOpen, setClientDialogOpen] = useState(false);
             </div>
 
             <Select
-              value={formData.clientId}
-              onValueChange={(value) => setFormData({ ...formData, clientId: value })}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione o cliente" />
-              </SelectTrigger>
-              <SelectContent>
-                {clients.map((client) => (
-                  <SelectItem key={client.id} value={client.id}>
-                    {client.name} - {client.cpf}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+  value={formData.clientId || undefined} // ⚠️ undefined evita warning
+  onValueChange={(value) => setFormData({ ...formData, clientId: value })}
+>
+  <SelectTrigger>
+    <SelectValue placeholder="Selecione o cliente" />
+  </SelectTrigger>
+  <SelectContent>
+    {clients.map((client) => (
+      <SelectItem key={client.id} value={client.id}>
+        {client.name} - {client.cpf}
+      </SelectItem>
+    ))}
+  </SelectContent>
+</Select>
+
           </div>
 
           <div className="space-y-2">

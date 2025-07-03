@@ -69,7 +69,7 @@ export function ProcessCard({
               <p><strong>Comarca / Vara:</strong> {process.comarcaVara || '—'}</p>
               <p><strong>Tipo de Crime:</strong> {process.tipoCrime || '—'}</p>
             </div>
-
+            
             <div className="mt-3">
               <p className="text-sm"><strong>Descrição:</strong></p>
               <p className="text-sm text-gray-600 mt-1">{process.description}</p>

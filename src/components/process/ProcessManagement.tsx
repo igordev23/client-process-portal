@@ -85,16 +85,20 @@ export function ProcessManagement({ onBack }: { onBack: () => void }) {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <ProcessForm
-        isOpen={isAddDialogOpen || isEditDialogOpen}
-        onOpenChange={(open) => {
-          if (!open) handleCloseForm();
-        }}
-        onSubmit={handleFormSubmit}
-        user={user}
-        clients={clients}
-        initialData={isEditDialogOpen ? selectedProcess || undefined : undefined}
-      />
+    <ProcessForm
+  key={selectedProcess?.id || 'new'} // ✅ Força recriação
+  isOpen={isAddDialogOpen || isEditDialogOpen}
+  onOpenChange={(open) => {
+    if (!open) handleCloseForm();
+  }}
+  onSubmit={handleFormSubmit}
+  user={user}
+  clients={clients}
+  initialData={isEditDialogOpen ? selectedProcess : undefined}
+/>
+
+
+
 
       <ProcessUpdateDialog
         isOpen={isUpdateDialogOpen}
