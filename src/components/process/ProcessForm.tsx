@@ -6,11 +6,23 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { SelectWithSearch } from '@/components/ui/SelectWithSearch';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Process } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { SelectWithAdd } from '@/components/ui/SelectWithAdd';
+import {
+  Dialog as InnerDialog,
+  DialogContent as InnerDialogContent,
+  DialogHeader as InnerDialogHeader,
+  DialogTitle as InnerDialogTitle,
+  DialogDescription as InnerDialogDescription,
+  DialogTrigger as InnerDialogTrigger
+} from '@/components/ui/dialog';
+import { ClientDialogForm } from '@/components/ui/ClientDialogForm';
 
 interface Props {
   isOpen: boolean;
@@ -29,6 +41,15 @@ export function ProcessForm({
   user,
   initialData
 }: Props) {
+  const {
+    tipoCrimes,
+    comarcasVaras,
+    situacoesPrisionais,
+    addTipoCrime,
+    addComarcaVara,
+    addSituacaoPrisional
+  } = useAuth();
+
   const [formData, setFormData] = useState<Process & {
     situacaoPrisional: string;
     comarcaVara: string;
@@ -49,15 +70,18 @@ export function ProcessForm({
     tipoCrime: '',
   });
 
-  useEffect(() => {
+ useEffect(() => {
+  if (isOpen) {
     if (initialData) {
+      // Preenche com os dados do processo selecionado
       setFormData({
         ...initialData,
-        situacaoPrisional: (initialData as any).situacaoPrisional || '',
-        comarcaVara: (initialData as any).comarcaVara || '',
-        tipoCrime: (initialData as any).tipoCrime || '',
+        situacaoPrisional: initialData.situacaoPrisional || '',
+        comarcaVara: initialData.comarcaVara || '',
+        tipoCrime: initialData.tipoCrime || '',
       });
     } else {
+      // Reseta o formulário para cadastro
       setFormData({
         id: '',
         clientId: '',
@@ -68,13 +92,15 @@ export function ProcessForm({
         lastUpdate: '',
         description: '',
         lawyer: user?.name || '',
-        updates: [],
         situacaoPrisional: '',
         comarcaVara: '',
         tipoCrime: '',
+        updates: [],
       });
     }
-  }, [initialData, user]);
+  }
+}, [isOpen, initialData]); // ✅ Inclua o initialData
+
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -100,8 +126,28 @@ export function ProcessForm({
       tipoCrime: '',
     });
   };
+const [clientDialogOpen, setClientDialogOpen] = useState(false);
 
-  return (
+ return (
+  <>
+    {/* Modal do Cliente fora do formulário */}
+    <InnerDialog open={clientDialogOpen} onOpenChange={setClientDialogOpen}>
+      <InnerDialogContent className="sm:max-w-[425px]">
+        <InnerDialogHeader>
+          <InnerDialogTitle>Cadastrar Novo Cliente</InnerDialogTitle>
+          <InnerDialogDescription>
+            Preencha os dados do novo cliente. Ele será adicionado à lista.
+          </InnerDialogDescription>
+        </InnerDialogHeader>
+        <ClientDialogForm
+          onSuccess={() => {
+            setClientDialogOpen(false);
+            // Opcional: atualizar a lista de clientes após cadastro
+          }}
+        />
+      </InnerDialogContent>
+    </InnerDialog>
+
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
         <DialogHeader>
@@ -112,22 +158,30 @@ export function ProcessForm({
               : 'Preencha os dados do processo jurídico'}
           </DialogDescription>
         </DialogHeader>
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="clientId">Cliente</Label>
-            <Select value={formData.clientId} onValueChange={(value) => setFormData({ ...formData, clientId: value })}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione o cliente" />
-              </SelectTrigger>
-              <SelectContent>
-                {clients.map((client) => (
-                  <SelectItem key={client.id} value={client.id}>
-                    {client.name} - {client.cpf}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+            <div className="flex items-center justify-between">
+   <SelectWithSearch
+      label="Cliente"
+      value={formData.clientId}
+      onChange={(value) => setFormData({ ...formData, clientId: value })}
+      options={clients.map((client) => ({
+        id: client.id,
+        label: `${client.name} - ${client.cpf}`
+      }))}
+    />
+
+    <Button
+      type="button"
+      variant="link"
+      className="text-blue-600 text-sm p-0 h-auto"
+      onClick={() => setClientDialogOpen(true)}
+    >
+      + Novo Cliente
+    </Button>
+  </div>
+</div>
 
           <div className="space-y-2">
             <Label htmlFor="processNumber">Número do Processo</Label>
@@ -154,7 +208,12 @@ export function ProcessForm({
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="status">Status</Label>
-              <Select value={formData.status} onValueChange={(value: Process['status']) => setFormData({ ...formData, status: value })}>
+              <Select
+                value={formData.status}
+                onValueChange={(value: Process['status']) =>
+                  setFormData({ ...formData, status: value })
+                }
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -200,35 +259,29 @@ export function ProcessForm({
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="situacaoPrisional">Situação Prisional</Label>
-            <Input
-              id="situacaoPrisional"
-              placeholder="Ex: Preso preventivamente, em liberdade provisória..."
-              value={formData.situacaoPrisional}
-              onChange={(e) => setFormData({ ...formData, situacaoPrisional: e.target.value })}
-            />
-          </div>
+          <SelectWithAdd
+            label="Situação Prisional"
+            value={formData.situacaoPrisional}
+            onChange={(value) => setFormData({ ...formData, situacaoPrisional: value })}
+            options={situacoesPrisionais}
+            onAdd={addSituacaoPrisional}
+          />
 
-          <div className="space-y-2">
-            <Label htmlFor="comarcaVara">Comarca / Vara</Label>
-            <Input
-              id="comarcaVara"
-              placeholder="Informe a comarca ou vara responsável"
-              value={formData.comarcaVara}
-              onChange={(e) => setFormData({ ...formData, comarcaVara: e.target.value })}
-            />
-          </div>
+          <SelectWithAdd
+            label="Comarca / Vara"
+            value={formData.comarcaVara}
+            onChange={(value) => setFormData({ ...formData, comarcaVara: value })}
+            options={comarcasVaras}
+            onAdd={addComarcaVara}
+          />
 
-          <div className="space-y-2">
-            <Label htmlFor="tipoCrime">Tipo de Crime</Label>
-            <Input
-              id="tipoCrime"
-              placeholder="Informe o tipo de crime do processo"
-              value={formData.tipoCrime}
-              onChange={(e) => setFormData({ ...formData, tipoCrime: e.target.value })}
-            />
-          </div>
+          <SelectWithAdd
+            label="Tipo de Crime"
+            value={formData.tipoCrime}
+            onChange={(value) => setFormData({ ...formData, tipoCrime: value })}
+            options={tipoCrimes}
+            onAdd={addTipoCrime}
+          />
 
           <div className="flex gap-2 pt-4">
             <Button type="button" variant="outline" onClick={handleCancel} className="flex-1">
@@ -241,5 +294,7 @@ export function ProcessForm({
         </form>
       </DialogContent>
     </Dialog>
-  );
+  </>
+);
+
 }

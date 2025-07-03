@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
-import { useAuth, Process } from '@/contexts/AuthContext';
+import { useAuth, Process, ProcessUpdate } from '@/contexts/AuthContext';
 import { ProcessForm } from './ProcessForm';
 import { ProcessCard } from './ProcessCard';
 import { ProcessUpdateDialog } from './ProcessUpdateDialog';
@@ -10,7 +10,16 @@ import { exportProcessesToExcel } from '@/lib/export/processExporter'; //funçã
 
 
 export function ProcessManagement({ onBack }: { onBack: () => void }) {
-  const { processes, clients, addProcess, updateProcess, addProcessUpdate, user } = useAuth();
+  const {
+    processes,
+    clients,
+    addProcess,
+    updateProcess,
+    addProcessUpdate,
+    updateProcessUpdate,
+    deleteProcessUpdate,
+    user,
+  } = useAuth();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -18,13 +27,12 @@ export function ProcessManagement({ onBack }: { onBack: () => void }) {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedProcess, setSelectedProcess] = useState<Process | null>(null);
-
   const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false);
+  const [editUpdate, setEditUpdate] = useState<ProcessUpdate | null>(null);
 
-  // Filtrar processos conforme busca e status
-  const filteredProcesses = processes.filter(process => {
-    if ((process as any).deleted) return false; // Ignorar excluídos, se houver flag deleted
-    const client = clients.find(c => c.id === process.clientId);
+  const filteredProcesses = processes.filter((process) => {
+    if ((process as any).deleted) return false;
+    const client = clients.find((c) => c.id === process.clientId);
     const lowerSearch = searchTerm.toLowerCase();
     const matchesSearch =
       process.title.toLowerCase().includes(lowerSearch) ||
@@ -35,33 +43,17 @@ export function ProcessManagement({ onBack }: { onBack: () => void }) {
     return matchesSearch && matchesStatus;
   });
 
-  // Abrir diálogo de edição e setar processo selecionado
   const openEditDialog = (process: Process) => {
     setSelectedProcess(process);
     setIsEditDialogOpen(true);
   };
 
-  // Abrir diálogo de atualização (novas atualizações do processo)
   const openUpdateDialog = (process: Process) => {
     setSelectedProcess(process);
+    setEditUpdate(null);
     setIsUpdateDialogOpen(true);
   };
 
-  // Excluir processo (aqui removendo do estado via updateProcess com flag deleted)
-  const deleteProcess = (id: string) => {
-    updateProcess(id, { ...(processes.find(p => p.id === id) || {}), deleted: true } as Partial<Process>);
-    toast({
-      title: 'Processo excluído',
-      description: 'O processo foi removido com sucesso.',
-    });
-  };
-
-  // Atualizar status do processo
-  const updateProcessStatus = (id: string, newStatus: Process['status']) => {
-    updateProcess(id, { status: newStatus });
-  };
-
-  // Submissão do formulário (adicionar ou editar)
   const handleFormSubmit = (formData: Process) => {
     if (isEditDialogOpen && selectedProcess) {
       updateProcess(selectedProcess.id, formData);
@@ -70,13 +62,23 @@ export function ProcessManagement({ onBack }: { onBack: () => void }) {
       addProcess(formData);
       toast({ title: 'Processo cadastrado', description: 'Novo processo adicionado.' });
     }
-    // Fechar diálogos e limpar seleção
     setIsAddDialogOpen(false);
     setIsEditDialogOpen(false);
     setSelectedProcess(null);
   };
 
-  // Fechar formulários e limpar estado
+  const deleteProcess = (id: string) => {
+    updateProcess(id, { ...(processes.find(p => p.id === id) || {}), deleted: true } as Partial<Process>);
+    toast({
+      title: 'Processo excluído',
+      description: 'O processo foi removido com sucesso.',
+    });
+  };
+
+  const updateProcessStatus = (id: string, newStatus: Process['status']) => {
+    updateProcess(id, { status: newStatus });
+  };
+
   const handleCloseForm = () => {
     setIsAddDialogOpen(false);
     setIsEditDialogOpen(false);
@@ -85,29 +87,47 @@ export function ProcessManagement({ onBack }: { onBack: () => void }) {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <ProcessForm
-        isOpen={isAddDialogOpen || isEditDialogOpen}
-        onOpenChange={(open) => {
-          if (!open) handleCloseForm();
-        }}
-        onSubmit={handleFormSubmit}
-        user={user}
-        clients={clients}
-        initialData={isEditDialogOpen ? selectedProcess || undefined : undefined}
-      />
+    <ProcessForm
+  key={selectedProcess?.id || 'new'} // ✅ Força recriação
+  isOpen={isAddDialogOpen || isEditDialogOpen}
+  onOpenChange={(open) => {
+    if (!open) handleCloseForm();
+  }}
+  onSubmit={handleFormSubmit}
+  user={user}
+  clients={clients}
+  initialData={isEditDialogOpen ? selectedProcess : undefined}
+/>
+
+
+
 
       <ProcessUpdateDialog
         isOpen={isUpdateDialogOpen}
         onOpenChange={(open) => {
-          if (!open) setSelectedProcess(null);
+          if (!open) {
+            setSelectedProcess(null);
+            setEditUpdate(null);
+          }
           setIsUpdateDialogOpen(open);
         }}
         process={selectedProcess}
         user={user}
+        initialData={editUpdate || undefined}
         onSubmit={(update) => {
-          if (selectedProcess) {
+          if (!selectedProcess) return;
+          if (editUpdate) {
+            updateProcessUpdate(selectedProcess.id, editUpdate.id, update);
+            toast({ title: 'Atualização editada', description: 'A atualização foi alterada com sucesso.' });
+          } else {
             addProcessUpdate(selectedProcess.id, update);
-            toast({ title: 'Atualização adicionada', description: 'Nova atualização adicionada ao processo.' });
+            toast({ title: 'Atualização adicionada', description: 'Atualização adicionada ao processo.' });
+          }
+        }}
+        onDelete={() => {
+          if (selectedProcess && editUpdate) {
+            deleteProcessUpdate(selectedProcess.id, editUpdate.id);
+            toast({ title: 'Atualização removida', description: 'A atualização foi excluída.' });
           }
         }}
       />
@@ -130,8 +150,8 @@ export function ProcessManagement({ onBack }: { onBack: () => void }) {
           {filteredProcesses.length === 0 ? (
             <Card className="py-8 text-center text-gray-500">Nenhum processo encontrado</Card>
           ) : (
-            filteredProcesses.map(process => {
-              const client = clients.find(c => c.id === process.clientId);
+            filteredProcesses.map((process) => {
+              const client = clients.find((c) => c.id === process.clientId);
               return (
                 <ProcessCard
                   key={process.id}
@@ -141,6 +161,17 @@ export function ProcessManagement({ onBack }: { onBack: () => void }) {
                   onAddUpdate={() => openUpdateDialog(process)}
                   onEdit={() => openEditDialog(process)}
                   onDelete={() => deleteProcess(process.id)}
+                  onEditUpdate={(update) => {
+                    setSelectedProcess(process);
+                    setEditUpdate(update);
+                    setIsUpdateDialogOpen(true);
+                  }}
+                  onDeleteUpdate={(update) => {
+                    if (confirm('Deseja realmente excluir esta atualização?')) {
+                      deleteProcessUpdate(process.id, update.id);
+                      toast({ title: 'Atualização excluída', description: 'A atualização foi removida com sucesso.' });
+                    }
+                  }}
                 />
               );
             })

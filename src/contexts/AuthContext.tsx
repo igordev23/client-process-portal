@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { toast } from '@/hooks/use-toast';
+import { storageService } from '@/components/storage_service/storageService'; // ajuste o caminho conforme sua estrutura
 
 export type UserRole = 'admin' | 'employee' | 'client';
 
@@ -24,6 +25,13 @@ export interface Client {
   updatedAt: string;
 }
 
+export interface ProcessUpdate {
+  id: string;
+  date: string;
+  description: string;
+  author: string;
+}
+
 export interface Process {
   id: string;
   clientId: string;
@@ -35,16 +43,9 @@ export interface Process {
   description: string;
   lawyer: string;
   updates: ProcessUpdate[];
-  prisonStatus?: string;
-  court?: string;
-  crimeType?: string;
-}
-
-export interface ProcessUpdate {
-  id: string;
-  date: string;
-  description: string;
-  author: string;
+  situacaoPrisional?: string;
+  comarcaVara?: string;
+  tipoCrime?: string;
 }
 
 interface AuthContextType {
@@ -63,10 +64,28 @@ interface AuthContextType {
   deleteProcess: (id: string) => void;
   addProcessUpdate: (processId: string, update: Omit<ProcessUpdate, 'id'>) => void;
   getClientProcesses: (clientId: string) => Process[];
+  updateProcessUpdate: (processId: string, updateId: string, newUpdate: Partial<ProcessUpdate>) => void;
+  deleteProcessUpdate: (processId: string, updateId: string) => void;
+
+  tipoCrimes: string[];
+  addTipoCrime: (value: string) => void;
+  removeTipoCrime: (value: string) => void;
+  editTipoCrime: (oldValue: string, newValue: string) => void;
+
+  comarcasVaras: string[];
+  addComarcaVara: (value: string) => void;
+  removeComarcaVara: (value: string) => void;
+  editComarcaVara: (oldValue: string, newValue: string) => void;
+
+  situacoesPrisionais: string[];
+  addSituacaoPrisional: (value: string) => void;
+  removeSituacaoPrisional: (value: string) => void;
+  editSituacaoPrisional: (oldValue: string, newValue: string) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Dados iniciais
 const initialUsers: User[] = [
   {
     id: '1',
@@ -136,9 +155,9 @@ const initialProcesses: Process[] = [
         author: 'João Santos',
       },
     ],
-    prisonStatus: 'Preso preventivamente',
-    court: 'Vara Criminal de São Paulo',
-    crimeType: 'Receptação',
+    situacaoPrisional: 'Preso preventivamente',
+    comarcaVara: 'Vara Criminal de São Paulo',
+    tipoCrime: 'Receptação',
   },
   {
     id: '2',
@@ -158,11 +177,12 @@ const initialProcesses: Process[] = [
         author: 'Dra. Maria Silva',
       },
     ],
-    prisonStatus: 'Em liberdade',
-    court: '2ª Vara do Trabalho de SP',
-    crimeType: 'Trabalhista',
+    situacaoPrisional: 'Em liberdade',
+    comarcaVara: '2ª Vara do Trabalho de SP',
+    tipoCrime: 'Trabalhista',
   },
 ];
+
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -170,38 +190,48 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [processes, setProcesses] = useState<Process[]>([]);
   const [users, setUsers] = useState<User[]>([]);
 
+  const [tipoCrimes, setTipoCrimes] = useState<string[]>([]);
+  const [comarcasVaras, setComarcasVaras] = useState<string[]>([]);
+  const [situacoesPrisionais, setSituacoesPrisionais] = useState<string[]>([]);
+
   useEffect(() => {
-    const storedUser = localStorage.getItem('currentUser');
-    const storedClients = localStorage.getItem('clients');
-    const storedProcesses = localStorage.getItem('processes');
-    const storedUsers = localStorage.getItem('users');
+  async function loadData() {
+    const storedUser = await storageService.getItem<User | null>('currentUser', null);
+    const storedClients = await storageService.getItem<Client[]>('clients', initialClients);
+    const storedProcesses = await storageService.getItem<Process[]>('processes', initialProcesses);
+    const storedUsers = await storageService.getItem<User[]>('users', initialUsers);
+    const storedTipoCrimes = await storageService.getItem<string[]>('tipoCrimes', []);
+    const storedComarcasVaras = await storageService.getItem<string[]>('comarcasVaras', []);
+    const storedSituacoesPrisionais = await storageService.getItem<string[]>('situacoesPrisionais', []);
 
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
+    setUser(storedUser);
+    setClients(storedClients);
+    setProcesses(storedProcesses);
+    setUsers(storedUsers);
+    setTipoCrimes(storedTipoCrimes);
+    setComarcasVaras(storedComarcasVaras);
+    setSituacoesPrisionais(storedSituacoesPrisionais);
+  }
 
-    setClients(storedClients ? JSON.parse(storedClients) : initialClients);
-    setProcesses(storedProcesses ? JSON.parse(storedProcesses) : initialProcesses);
-    setUsers(storedUsers ? JSON.parse(storedUsers) : initialUsers);
-  }, []);
+  loadData();
+}, []);
+
 
   const login = async (email: string, password: string): Promise<boolean> => {
     const foundUser = users.find(u => u.email === email);
-
     if (foundUser && password === '123456') {
       setUser(foundUser);
-      localStorage.setItem('currentUser', JSON.stringify(foundUser));
+      storageService.setItem('currentUser', foundUser);
       toast({ title: 'Login realizado com sucesso', description: `Bem-vindo(a), ${foundUser.name}!` });
       return true;
     }
-
     toast({ title: 'Erro no login', description: 'Email ou senha incorretos', variant: 'destructive' });
     return false;
   };
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('currentUser');
+    storageService.removeItem('currentUser');
     toast({ title: 'Logout realizado', description: 'Até logo!' });
   };
 
@@ -212,6 +242,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return `${initials}${year}${random}`;
   };
 
+  // Clients
   const addClient = (clientData: Omit<Client, 'id' | 'accessKey' | 'createdAt' | 'updatedAt'>) => {
     const newClient: Client = {
       ...clientData,
@@ -220,11 +251,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
-
     const updatedClients = [...clients, newClient];
     setClients(updatedClients);
-    localStorage.setItem('clients', JSON.stringify(updatedClients));
-
+    storageService.setItem('clients', updatedClients);
     toast({ title: 'Cliente cadastrado', description: `Cliente ${newClient.name} cadastrado com chave de acesso: ${newClient.accessKey}` });
   };
 
@@ -233,8 +262,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       client.id === id ? { ...client, ...updates, updatedAt: new Date().toISOString() } : client
     );
     setClients(updatedClients);
-    localStorage.setItem('clients', JSON.stringify(updatedClients));
-
+    storageService.setItem('clients', updatedClients);
     toast({ title: 'Cliente atualizado', description: 'Dados do cliente foram atualizados com sucesso' });
   };
 
@@ -243,65 +271,157 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       toast({ title: 'Acesso negado', description: 'Apenas administradores podem excluir clientes', variant: 'destructive' });
       return;
     }
-
     const updatedClients = clients.filter(client => client.id !== id);
     setClients(updatedClients);
-    localStorage.setItem('clients', JSON.stringify(updatedClients));
-
+    storageService.setItem('clients', updatedClients);
     toast({ title: 'Cliente removido', description: 'Cliente foi removido do sistema' });
   };
 
+  // Processes
   const addProcess = (processData: Omit<Process, 'id' | 'updates'>) => {
     const newProcess: Process = {
       ...processData,
       id: Date.now().toString(),
       updates: [],
     };
-
     const updatedProcesses = [...processes, newProcess];
     setProcesses(updatedProcesses);
-    localStorage.setItem('processes', JSON.stringify(updatedProcesses));
-
+    storageService.setItem('processes', updatedProcesses);
     toast({ title: 'Processo cadastrado', description: `Processo ${newProcess.processNumber} foi cadastrado` });
   };
 
   const updateProcess = (id: string, updates: Partial<Process>) => {
-    const updatedProcesses = processes.map(process =>
-      process.id === id ? { ...process, ...updates, lastUpdate: new Date().toISOString().split('T')[0] } : process
+    const updatedProcesses = processes.map(proc =>
+      proc.id === id ? { ...proc, ...updates, lastUpdate: new Date().toISOString() } : proc
     );
     setProcesses(updatedProcesses);
-    localStorage.setItem('processes', JSON.stringify(updatedProcesses));
-
+    storageService.setItem('processes', updatedProcesses);
     toast({ title: 'Processo atualizado', description: 'Dados do processo foram atualizados' });
   };
 
   const deleteProcess = (id: string) => {
-    const updated = processes.filter(p => p.id !== id);
-    setProcesses(updated);
-    localStorage.setItem('processes', JSON.stringify(updated));
-    toast({ title: 'Processo excluído', description: 'O processo foi removido com sucesso' });
-  };
-
-  const addProcessUpdate = (processId: string, updateData: Omit<ProcessUpdate, 'id'>) => {
-    const newUpdate: ProcessUpdate = {
-      ...updateData,
-      id: Date.now().toString(),
-    };
-
-    const updatedProcesses = processes.map(process =>
-      process.id === processId
-        ? { ...process, updates: [...process.updates, newUpdate], lastUpdate: newUpdate.date }
-        : process
-    );
-
+    const updatedProcesses = processes.filter(proc => proc.id !== id);
     setProcesses(updatedProcesses);
-    localStorage.setItem('processes', JSON.stringify(updatedProcesses));
-
-    toast({ title: 'Atualização adicionada', description: 'Nova atualização foi adicionada ao processo' });
+    storageService.setItem('processes', updatedProcesses);
+    toast({ title: 'Processo removido', description: 'Processo removido do sistema' });
   };
 
-  const getClientProcesses = (clientId: string): Process[] => {
-    return processes.filter(process => process.clientId === clientId);
+  // Process Updates
+  const addProcessUpdate = (processId: string, updateData: Omit<ProcessUpdate, 'id'>) => {
+    const updatedProcesses = processes.map(proc => {
+      if (proc.id === processId) {
+        const newUpdate: ProcessUpdate = {
+          id: Date.now().toString(),
+          ...updateData,
+        };
+        return {
+          ...proc,
+          updates: [...proc.updates, newUpdate],
+          lastUpdate: new Date().toISOString(),
+        };
+      }
+      return proc;
+    });
+    setProcesses(updatedProcesses);
+    storageService.setItem('processes', updatedProcesses);
+    toast({ title: 'Atualização adicionada', description: 'Nova atualização do processo adicionada' });
+  };
+
+  const updateProcessUpdate = (processId: string, updateId: string, newUpdate: Partial<ProcessUpdate>) => {
+    const updatedProcesses = processes.map(proc => {
+      if (proc.id === processId) {
+        const updatedUpdates = proc.updates.map(upd =>
+          upd.id === updateId ? { ...upd, ...newUpdate } : upd
+        );
+        return {
+          ...proc,
+          updates: updatedUpdates,
+          lastUpdate: new Date().toISOString(),
+        };
+      }
+      return proc;
+    });
+    setProcesses(updatedProcesses);
+    storageService.setItem('processes', updatedProcesses);
+    toast({ title: 'Atualização modificada', description: 'Dados da atualização do processo foram modificados' });
+  };
+
+  const deleteProcessUpdate = (processId: string, updateId: string) => {
+    const updatedProcesses = processes.map(proc => {
+      if (proc.id === processId) {
+        const filteredUpdates = proc.updates.filter(upd => upd.id !== updateId);
+        return {
+          ...proc,
+          updates: filteredUpdates,
+          lastUpdate: new Date().toISOString(),
+        };
+      }
+      return proc;
+    });
+    setProcesses(updatedProcesses);
+    storageService.setItem('processes', updatedProcesses);
+    toast({ title: 'Atualização removida', description: 'Atualização do processo removida' });
+  };
+
+  const getClientProcesses = (clientId: string) => {
+    return processes.filter(proc => proc.clientId === clientId);
+  };
+
+  // Tipo Crimes
+  const addTipoCrime = (value: string) => {
+    if (!tipoCrimes.includes(value)) {
+      const updated = [...tipoCrimes, value];
+      setTipoCrimes(updated);
+      storageService.setItem('tipoCrimes', updated);
+    }
+  };
+  const removeTipoCrime = (value: string) => {
+    const updated = tipoCrimes.filter(item => item !== value);
+    setTipoCrimes(updated);
+    storageService.setItem('tipoCrimes', updated);
+  };
+  const editTipoCrime = (oldValue: string, newValue: string) => {
+    const updated = tipoCrimes.map(item => (item === oldValue ? newValue : item));
+    setTipoCrimes(updated);
+    storageService.setItem('tipoCrimes', updated);
+  };
+
+  // Comarcas Varas
+  const addComarcaVara = (value: string) => {
+    if (!comarcasVaras.includes(value)) {
+      const updated = [...comarcasVaras, value];
+      setComarcasVaras(updated);
+      storageService.setItem('comarcasVaras', updated);
+    }
+  };
+  const removeComarcaVara = (value: string) => {
+    const updated = comarcasVaras.filter(item => item !== value);
+    setComarcasVaras(updated);
+    storageService.setItem('comarcasVaras', updated);
+  };
+  const editComarcaVara = (oldValue: string, newValue: string) => {
+    const updated = comarcasVaras.map(item => (item === oldValue ? newValue : item));
+    setComarcasVaras(updated);
+    storageService.setItem('comarcasVaras', updated);
+  };
+
+  // Situações Prisionais
+  const addSituacaoPrisional = (value: string) => {
+    if (!situacoesPrisionais.includes(value)) {
+      const updated = [...situacoesPrisionais, value];
+      setSituacoesPrisionais(updated);
+      storageService.setItem('situacoesPrisionais', updated);
+    }
+  };
+  const removeSituacaoPrisional = (value: string) => {
+    const updated = situacoesPrisionais.filter(item => item !== value);
+    setSituacoesPrisionais(updated);
+    storageService.setItem('situacoesPrisionais', updated);
+  };
+  const editSituacaoPrisional = (oldValue: string, newValue: string) => {
+    const updated = situacoesPrisionais.map(item => (item === oldValue ? newValue : item));
+    setSituacoesPrisionais(updated);
+    storageService.setItem('situacoesPrisionais', updated);
   };
 
   const value: AuthContextType = {
@@ -320,6 +440,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     deleteProcess,
     addProcessUpdate,
     getClientProcesses,
+    updateProcessUpdate,
+    deleteProcessUpdate,
+
+    tipoCrimes,
+    addTipoCrime,
+    removeTipoCrime,
+    editTipoCrime,
+
+    comarcasVaras,
+    addComarcaVara,
+    removeComarcaVara,
+    editComarcaVara,
+
+    situacoesPrisionais,
+    addSituacaoPrisional,
+    removeSituacaoPrisional,
+    editSituacaoPrisional,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -3,7 +3,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Process } from '@/contexts/AuthContext';
+import { Process, ProcessUpdate } from '@/contexts/AuthContext';
+import { Pencil, Trash2 } from 'lucide-react';
 
 interface ProcessCardProps {
   process: Process;
@@ -12,6 +13,8 @@ interface ProcessCardProps {
   onAddUpdate: () => void;
   onEdit: () => void;
   onDelete: () => void;
+  onEditUpdate?: (update: ProcessUpdate) => void;
+  onDeleteUpdate?: (update: ProcessUpdate) => void;
 }
 
 export function ProcessCard({
@@ -21,6 +24,8 @@ export function ProcessCard({
   onAddUpdate,
   onEdit,
   onDelete,
+  onEditUpdate,
+  onDeleteUpdate,
 }: ProcessCardProps) {
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -64,37 +69,34 @@ export function ProcessCard({
               <p><strong>Comarca / Vara:</strong> {process.comarcaVara || '—'}</p>
               <p><strong>Tipo de Crime:</strong> {process.tipoCrime || '—'}</p>
             </div>
-
+            
             <div className="mt-3">
               <p className="text-sm"><strong>Descrição:</strong></p>
               <p className="text-sm text-gray-600 mt-1">{process.description}</p>
             </div>
 
-            {process.updates.length > 0 && (
-              <div className="mt-4">
-                <p className="text-sm font-medium mb-2">Últimas Atualizações:</p>
-                <div className="space-y-2">
-                  {process.updates.slice(-3).reverse().map((update) => (
-                    <div key={update.id} className="bg-gray-50 p-3 rounded-lg">
-                      <div className="flex justify-between items-start mb-1">
-                        <span className="text-xs font-medium text-gray-900">{update.author}</span>
-                        <span className="text-xs text-gray-500">
-                          {new Date(update.date).toLocaleDateString('pt-BR')}
-                        </span>
-                      </div>
-                      <p className="text-sm text-gray-700">{update.description}</p>
-                    </div>
-                  ))}
+            {process.updates.slice(-3).reverse().map((update) => (
+              <div key={update.id} className="bg-gray-50 p-3 rounded-lg relative mt-2">
+                <div className="flex justify-between items-start mb-1">
+                  <span className="text-xs font-medium text-gray-900">{update.author}</span>
+                  <span className="text-xs text-gray-500">{new Date(update.date).toLocaleDateString('pt-BR')}</span>
+                </div>
+                <p className="text-sm text-gray-700">{update.description}</p>
+
+                <div className="absolute top-8 right-3 flex gap-1">
+                  <button onClick={() => onEditUpdate?.(update)}>
+                    <Pencil size={16} className="text-gray-500 hover:text-blue-500" />
+                  </button>
+                  <button onClick={() => onDeleteUpdate?.(update)}>
+                    <Trash2 size={16} className="text-gray-500 hover:text-red-500" />
+                  </button>
                 </div>
               </div>
-            )}
+            ))}
           </div>
 
           <div className="flex flex-col space-y-2 lg:ml-4">
-            <Select
-              value={process.status}
-              onValueChange={onStatusChange}
-            >
+            <Select value={process.status} onValueChange={onStatusChange}>
               <SelectTrigger className="w-full lg:w-48">
                 <SelectValue />
               </SelectTrigger>
@@ -106,21 +108,11 @@ export function ProcessCard({
               </SelectContent>
             </Select>
 
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onAddUpdate}
-              className="w-full lg:w-48"
-            >
+            <Button variant="outline" size="sm" onClick={onAddUpdate} className="w-full lg:w-48">
               Adicionar Atualização
             </Button>
 
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={onEdit}
-              className="w-full lg:w-48"
-            >
+            <Button variant="secondary" size="sm" onClick={onEdit} className="w-full lg:w-48">
               Editar Processo
             </Button>
 
