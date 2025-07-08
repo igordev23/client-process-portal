@@ -14,6 +14,7 @@ export interface User {
   password: string; // 🔥 Novo campo
 }
 
+
 export interface Client {
   id: string;
   name: string;
