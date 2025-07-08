@@ -7,11 +7,14 @@ import { ClientManagement } from './ClientManagement';
 import { ProcessManagement } from './process/ProcessManagement';
 import { ManageEntities } from './ManageEntities';
 
-type TabType = 'dashboard' | 'clients' | 'processes' | 'manage';
+const tabs = ['dashboard', 'clients', 'processes', 'manage'] as const;
+type TabType = typeof tabs[number];
+
+
 
 export function Dashboard() {
   const { user, logout, clients, processes } = useAuth();
-  const filteredProcesses = processes.filter(p => !p.deleted);
+  const filteredProcesses = processes.filter(p => !(p as any).deleted);
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
 
   const getStatusColor = (status: string) => {
@@ -109,7 +112,7 @@ export function Dashboard() {
               Dashboard
             </button>
             <button
-              onClick={() => setActiveTab('clients')}
+              onClick={() => setActiveTab('clients' as TabType)}
               className={`py-4 px-1 border-b-2 font-medium text-sm ${
                 activeTab === 'clients'
                   ? 'border-blue-500 text-blue-600'
@@ -119,7 +122,7 @@ export function Dashboard() {
               Clientes
             </button>
             <button
-              onClick={() => setActiveTab('processes')}
+              onClick={() => setActiveTab('processes' as TabType)}
               className={`py-4 px-1 border-b-2 font-medium text-sm ${
                 activeTab === 'processes'
                   ? 'border-blue-500 text-blue-600'
@@ -129,7 +132,7 @@ export function Dashboard() {
               Processos
             </button>
             <button
-              onClick={() => setActiveTab('manage')}
+              onClick={() => setActiveTab('manage' as TabType)}
               className={`py-4 px-1 border-b-2 font-medium text-sm ${
                 activeTab === 'manage'
                   ? 'border-blue-500 text-blue-600'

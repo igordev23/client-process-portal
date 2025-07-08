@@ -3,7 +3,6 @@ import { toast } from '@/hooks/use-toast';
 import { storageService } from '@/components/storage_service/storageService'; // ajuste o caminho conforme sua estrutura
 
 export type UserRole = 'admin' | 'employee' | 'client';
-
 export interface User {
   id: string;
   name: string;
@@ -12,6 +11,7 @@ export interface User {
   role: UserRole;
   isActive: boolean;
   createdAt: string;
+  password: string; // 🔥 Novo campo
 }
 
 export interface Client {
@@ -23,6 +23,7 @@ export interface Client {
   accessKey: string;
   createdAt: string;
   updatedAt: string;
+  createdBy: string; // 🔥 ID do usuário que cadastrou
 }
 
 export interface ProcessUpdate {
@@ -56,7 +57,7 @@ interface AuthContextType {
   clients: Client[];
   processes: Process[];
   users: User[];
-  addClient: (client: Omit<Client, 'id' | 'accessKey' | 'createdAt' | 'updatedAt'>) => void;
+addClient: (client: Omit<Client, 'id' | 'accessKey' | 'createdAt' | 'updatedAt' | 'createdBy'>) => void;
   updateClient: (id: string, client: Partial<Client>) => void;
   deleteClient: (id: string) => void;
   addProcess: (process: Omit<Process, 'id' | 'updates'>) => void;
@@ -95,6 +96,7 @@ const initialUsers: User[] = [
     role: 'admin',
     isActive: true,
     createdAt: new Date().toISOString(),
+    password: 'admin123', // 🔥 Senha definida no sistema
   },
   {
     id: '2',
@@ -104,6 +106,7 @@ const initialUsers: User[] = [
     role: 'employee',
     isActive: true,
     createdAt: new Date().toISOString(),
+    password: 'func123', // 🔥 Senha definida no sistema
   },
 ];
 
@@ -117,6 +120,7 @@ const initialClients: Client[] = [
     accessKey: 'ACP2024001',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
+    createdBy: '1', // ID do usuário que cadastrou
   },
   {
     id: '2',
@@ -127,6 +131,7 @@ const initialClients: Client[] = [
     accessKey: 'RL2024002',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
+    createdBy: '1', // ID do usuário que cadastrou
   },
 ];
 
@@ -218,16 +223,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 
   const login = async (email: string, password: string): Promise<boolean> => {
-    const foundUser = users.find(u => u.email === email);
-    if (foundUser && password === '123456') {
-      setUser(foundUser);
-      storageService.setItem('currentUser', foundUser);
-      toast({ title: 'Login realizado com sucesso', description: `Bem-vindo(a), ${foundUser.name}!` });
-      return true;
-    }
-    toast({ title: 'Erro no login', description: 'Email ou senha incorretos', variant: 'destructive' });
-    return false;
-  };
+  const foundUser = users.find(u => u.email === email && u.password === password);
+  if (foundUser) {
+    setUser(foundUser);
+    storageService.setItem('currentUser', foundUser);
+    toast({ title: 'Login realizado com sucesso', description: `Bem-vindo(a), ${foundUser.name}!` });
+    return true;
+  }
+  toast({ title: 'Erro no login', description: 'Email ou senha incorretos', variant: 'destructive' });
+  return false;
+};
+
 
   const logout = () => {
     setUser(null);
@@ -242,20 +248,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return `${initials}${year}${random}`;
   };
 
-  // Clients
-  const addClient = (clientData: Omit<Client, 'id' | 'accessKey' | 'createdAt' | 'updatedAt'>) => {
-    const newClient: Client = {
-      ...clientData,
-      id: Date.now().toString(),
-      accessKey: generateAccessKey(clientData.name),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-    const updatedClients = [...clients, newClient];
-    setClients(updatedClients);
-    storageService.setItem('clients', updatedClients);
-    toast({ title: 'Cliente cadastrado', description: `Cliente ${newClient.name} cadastrado com chave de acesso: ${newClient.accessKey}` });
+  const addClient = (clientData: Omit<Client, 'id' | 'accessKey' | 'createdAt' | 'updatedAt' | 'createdBy'>) => {
+  if (!user) {
+    toast({ title: 'Ação não permitida', description: 'É preciso estar logado para cadastrar um cliente', variant: 'destructive' });
+    return;
+  }
+
+  const newClient: Client = {
+    ...clientData,
+    id: Date.now().toString(),
+    accessKey: generateAccessKey(clientData.name),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    createdBy: user.id, // 🔥 Inclui o ID do usuário logado
   };
+
+  const updatedClients = [...clients, newClient];
+  setClients(updatedClients);
+  storageService.setItem('clients', updatedClients);
+  toast({ title: 'Cliente cadastrado', description: `Cliente ${newClient.name} cadastrado com chave de acesso: ${newClient.accessKey}` });
+};
+
 
   const updateClient = (id: string, updates: Partial<Client>) => {
     const updatedClients = clients.map(client =>

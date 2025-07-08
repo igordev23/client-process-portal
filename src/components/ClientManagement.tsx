@@ -13,7 +13,7 @@ interface ClientManagementProps {
 }
 
 export function ClientManagement({ onBack }: ClientManagementProps) {
-  const { clients, addClient, updateClient, deleteClient, user } = useAuth();
+const { clients, addClient, updateClient, deleteClient, user, users } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingClient, setEditingClient] = useState<Client | null>(null);
@@ -212,6 +212,10 @@ export function ClientManagement({ onBack }: ClientManagementProps) {
                             {client.accessKey}
                           </span>
                         </p>
+                        <p><strong>Cadastrado por:</strong> {
+                          users.find(u => u.id === client.createdBy)?.name || 'Desconhecido'
+                        }</p>
+
                       </div>
                       <p className="text-xs text-gray-400 mt-2">
                         Cadastrado em: {new Date(client.createdAt).toLocaleDateString('pt-BR')}

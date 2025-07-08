@@ -1,7 +1,7 @@
 // src/components/storage_service/apiStorageDriver.ts
 import { StorageDriver } from './StorageDriver';
 
-const API_BASE = 'https://seuservidor.com/api';
+const API_BASE = 'http://localhost:3000/clientes';
 
 export const apiStorageDriver: StorageDriver = {
   async getItem<T>(key: string, fallback?: T): Promise<T> {
