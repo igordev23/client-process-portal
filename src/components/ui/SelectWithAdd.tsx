@@ -6,7 +6,13 @@ import {
   SelectTrigger,
   SelectValue
 } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -14,28 +20,44 @@ interface Props {
   label: string;
   value: string;
   onChange: (value: string) => void;
-  options: string[];
+  options: (string | { name: string })[];
   onAdd: (newValue: string) => void;
 }
 
-export function SelectWithAdd({ label, value, onChange, options, onAdd }: Props) {
+export function SelectWithAdd({
+  label,
+  value,
+  onChange,
+  options,
+  onAdd
+}: Props) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [newOption, setNewOption] = useState("");
   const [search, setSearch] = useState("");
 
-  // Filtrar opções com base no termo de busca
+  // Extrai o texto de cada opção
+  const getLabel = (option: string | { name: string }) =>
+    typeof option === "string" ? option : option.name;
+
+  // Lista de strings únicas para o Select
+  const normalizedOptions = useMemo(() => {
+    const labels = options.map(getLabel);
+    return [...new Set(labels)];
+  }, [options]);
+
+  // Filtra com base no texto
   const filteredOptions = useMemo(() => {
-    if (!search.trim()) return options;
-    return options.filter((opt) =>
+    if (!search.trim()) return normalizedOptions;
+    return normalizedOptions.filter((opt) =>
       opt.toLowerCase().includes(search.trim().toLowerCase())
     );
-  }, [options, search]);
+  }, [normalizedOptions, search]);
 
   const handleAdd = () => {
     const trimmed = newOption.trim();
-    if (trimmed && !options.includes(trimmed)) {
+    if (trimmed && !normalizedOptions.includes(trimmed)) {
       onAdd(trimmed);
-      onChange(trimmed); // Seleciona automaticamente o novo item
+      onChange(trimmed);
       setNewOption("");
       setDialogOpen(false);
     }
@@ -50,7 +72,6 @@ export function SelectWithAdd({ label, value, onChange, options, onAdd }: Props)
             <SelectValue placeholder={`Selecione ${label.toLowerCase()}`} />
           </SelectTrigger>
           <SelectContent>
-            {/* Barra de pesquisa no dropdown */}
             <div className="p-2">
               <Input
                 placeholder="Pesquisar..."
@@ -59,7 +80,6 @@ export function SelectWithAdd({ label, value, onChange, options, onAdd }: Props)
                 className="w-full"
               />
             </div>
-            {/* Lista filtrada */}
             <div className="max-h-60 overflow-y-auto">
               {filteredOptions.length > 0 ? (
                 filteredOptions.map((option, i) => (
@@ -76,7 +96,6 @@ export function SelectWithAdd({ label, value, onChange, options, onAdd }: Props)
           </SelectContent>
         </Select>
 
-        {/* Botão para abrir o Dialog */}
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
             <Button type="button" variant="outline" size="icon">
@@ -108,7 +127,10 @@ export function SelectWithAdd({ label, value, onChange, options, onAdd }: Props)
                 </Button>
                 <Button
                   onClick={handleAdd}
-                  disabled={!newOption.trim() || options.includes(newOption.trim())}
+                  disabled={
+                    !newOption.trim() ||
+                    normalizedOptions.includes(newOption.trim())
+                  }
                   className="legal-gradient text-white"
                 >
                   Salvar

@@ -6,8 +6,7 @@ import { ProcessCard } from './ProcessCard';
 import { ProcessUpdateDialog } from './ProcessUpdateDialog';
 import { ProcessFilter } from './ProcessFilter';
 import { toast } from '@/hooks/use-toast';
-import { exportProcessesToExcel } from '@/lib/export/processExporter'; //função de exportar
-
+import { exportProcessesToExcel } from '@/lib/export/processExporter';
 
 export function ProcessManagement({ onBack }: { onBack: () => void }) {
   const {
@@ -30,6 +29,7 @@ export function ProcessManagement({ onBack }: { onBack: () => void }) {
   const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false);
   const [editUpdate, setEditUpdate] = useState<ProcessUpdate | null>(null);
 
+  // Filtra processos e clientes de forma segura
   const filteredProcesses = processes.filter((process) => {
     if ((process as any).deleted) return false;
     const client = clients.find((c) => c.id === process.clientId);
@@ -87,20 +87,17 @@ export function ProcessManagement({ onBack }: { onBack: () => void }) {
 
   return (
     <div className="min-h-screen bg-gray-50">
-    <ProcessForm
-  key={selectedProcess?.id || 'new'} // ✅ Força recriação
-  isOpen={isAddDialogOpen || isEditDialogOpen}
-  onOpenChange={(open) => {
-    if (!open) handleCloseForm();
-  }}
-  onSubmit={handleFormSubmit}
-  user={user}
-  clients={clients}
-  initialData={isEditDialogOpen ? selectedProcess : undefined}
-/>
-
-
-
+      <ProcessForm
+        key={selectedProcess?.id || 'new'} // força recriação para evitar stale state
+        isOpen={isAddDialogOpen || isEditDialogOpen}
+        onOpenChange={(open) => {
+          if (!open) handleCloseForm();
+        }}
+        onSubmit={handleFormSubmit}
+        user={user}
+        clients={clients}
+        initialData={isEditDialogOpen ? selectedProcess : undefined}
+      />
 
       <ProcessUpdateDialog
         isOpen={isUpdateDialogOpen}
@@ -152,6 +149,8 @@ export function ProcessManagement({ onBack }: { onBack: () => void }) {
           ) : (
             filteredProcesses.map((process) => {
               const client = clients.find((c) => c.id === process.clientId);
+
+              // Usar sempre client?.name ou '' para evitar erros
               return (
                 <ProcessCard
                   key={process.id}

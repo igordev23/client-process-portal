@@ -24,40 +24,64 @@ export function ManageEntities({ onBack }: { onBack: () => void }) {
   const [editValue, setEditValue] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
 
-  const getCurrentList = () => {
-    switch (activeTab) {
-      case 'tipoCrime':
-        return tipoCrimes;
-      case 'comarcaVara':
-        return comarcasVaras;
-      case 'situacaoPrisional':
-        return situacoesPrisionais;
-    }
-  };
+  // Sempre retorna um array (pode ser vazio)
+  const getCurrentList = (): string[] => {
+  let list: unknown[] = [];
+  switch (activeTab) {
+    case 'tipoCrime':
+      list = tipoCrimes || [];
+      break;
+    case 'comarcaVara':
+      list = comarcasVaras || [];
+      break;
+    case 'situacaoPrisional':
+      list = situacoesPrisionais || [];
+      break;
+  }
+  // Filtra só strings, elimina valores inválidos
+  return list.filter((item): item is string => typeof item === 'string');
+};
 
-  const filteredList = getCurrentList().filter((item) =>
-    item.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+const filteredList = getCurrentList().filter((item) => {
+  if (typeof item !== 'string') return false;
+  return item.toLowerCase().includes(searchTerm.toLowerCase());
+});
+
 
   const startEditing = (index: number) => {
     setEditIndex(index);
-    setEditValue(filteredList[index]); // pegar da lista filtrada
+    setEditValue(filteredList[index]);
   };
 
   const saveEdit = () => {
-    if (editIndex === null || editValue.trim() === '') return;
+    if (editIndex === null) return;
 
-    const originalIndex = getCurrentList().indexOf(filteredList[editIndex]);
+    const trimmedValue = editValue.trim();
+    if (trimmedValue === '') return;
+
+    const currentList = getCurrentList();
+
+    // Encontra índice original para atualizar no array correto
+    // ATENÇÃO: Se houver duplicatas, sempre atualiza a primeira ocorrência
+    const originalItem = filteredList[editIndex];
+    const originalIndex = currentList.indexOf(originalItem);
+
+    if (originalIndex === -1) {
+      // Item não encontrado na lista original (pode ocorrer em casos extremos)
+      setEditIndex(null);
+      setEditValue('');
+      return;
+    }
 
     switch (activeTab) {
       case 'tipoCrime':
-        editTipoCrime(getCurrentList()[originalIndex], editValue.trim());
+        editTipoCrime(currentList[originalIndex], trimmedValue);
         break;
       case 'comarcaVara':
-        editComarcaVara(getCurrentList()[originalIndex], editValue.trim());
+        editComarcaVara(currentList[originalIndex], trimmedValue);
         break;
       case 'situacaoPrisional':
-        editSituacaoPrisional(getCurrentList()[originalIndex], editValue.trim());
+        editSituacaoPrisional(currentList[originalIndex], trimmedValue);
         break;
     }
     setEditIndex(null);
@@ -86,6 +110,8 @@ export function ManageEntities({ onBack }: { onBack: () => void }) {
         return 'Comarcas / Varas';
       case 'situacaoPrisional':
         return 'Situações Prisionais';
+      default:
+        return '';
     }
   };
 
@@ -93,7 +119,9 @@ export function ManageEntities({ onBack }: { onBack: () => void }) {
     <div className="min-h-screen bg-gray-50 p-6 max-w-4xl mx-auto">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-gray-800">Configurações de Cadastro</h2>
-        <Button variant="outline" onClick={onBack}>Dashboard</Button>
+        <Button variant="outline" onClick={onBack}>
+          Dashboard
+        </Button>
       </div>
 
       {/* Tabs */}
@@ -103,7 +131,7 @@ export function ManageEntities({ onBack }: { onBack: () => void }) {
           onClick={() => {
             setActiveTab('tipoCrime');
             setEditIndex(null);
-            setSearchTerm(''); // limpa busca ao trocar
+            setSearchTerm('');
           }}
         >
           Tipos de Crime
@@ -152,17 +180,16 @@ export function ManageEntities({ onBack }: { onBack: () => void }) {
                       className="flex-1"
                     />
                     <Button onClick={saveEdit}>Salvar</Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => setEditIndex(null)}
-                    >
+                    <Button variant="outline" onClick={() => setEditIndex(null)}>
                       Cancelar
                     </Button>
                   </>
                 ) : (
                   <>
                     <span className="flex-1 text-sm text-gray-800">{item}</span>
-                    <Button size="sm" onClick={() => startEditing(i)}>Editar</Button>
+                    <Button size="sm" onClick={() => startEditing(i)}>
+                      Editar
+                    </Button>
                     <Button
                       size="sm"
                       variant="destructive"

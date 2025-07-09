@@ -25,11 +25,12 @@ const { clients, addClient, updateClient, deleteClient, user, users } = useAuth(
     phone: '',
   });
 
-  const filteredClients = clients.filter(client =>
-    client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    client.cpf.includes(searchTerm) ||
-    client.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+ const filteredClients = clients.filter(client =>
+  (client.name?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false) ||
+  (client.cpf?.includes(searchTerm) ?? false) ||
+  (client.email?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false)
+);
+
 
   const resetForm = () => {
     setFormData({ name: '', cpf: '', email: '', phone: '' });
