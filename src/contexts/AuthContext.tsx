@@ -49,7 +49,16 @@ export interface Process {
   situacaoPrisional?: string;
   comarcaVara?: string;
   tipoCrime?: string;
+   // Adicione estes campos para armazenar os IDs que o backend espera
+  situacaoPrisionalId?: number;
+  comarcaVaraId?: number;
+  tipoCrimeId?: number;
 }
+interface OptionItem {
+  id: number;
+  name: string;
+}
+
 
 interface AuthContextType {
   user: User | null;
