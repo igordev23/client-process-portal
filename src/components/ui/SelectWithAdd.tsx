@@ -6,36 +6,60 @@ import {
   SelectTrigger,
   SelectValue
 } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-interface Props {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  options: string[];
-  onAdd: (newValue: string) => void;
+interface Option {
+  id: number;
+  name: string;
 }
 
-export function SelectWithAdd({ label, value, onChange, options, onAdd }: Props) {
+interface Props {
+  label: string;
+  value: number;
+  onChange: (id: number) => void;
+  options: Option[];
+  onAdd: (newName: string) => void;
+}
+
+export function SelectWithAdd({
+  label,
+  value,
+  onChange,
+  options,
+  onAdd
+}: Props) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [newOption, setNewOption] = useState("");
   const [search, setSearch] = useState("");
 
-  // Filtrar opções com base no termo de busca
   const filteredOptions = useMemo(() => {
     if (!search.trim()) return options;
     return options.filter((opt) =>
-      opt.toLowerCase().includes(search.trim().toLowerCase())
+      opt.name.toLowerCase().includes(search.trim().toLowerCase())
     );
   }, [options, search]);
 
+  const selectedLabel = options.find(
+    (opt) => String(opt.id) === String(value)
+  )?.name;
+
   const handleAdd = () => {
     const trimmed = newOption.trim();
-    if (trimmed && !options.includes(trimmed)) {
+    if (
+      trimmed &&
+      !options.some(
+        (opt) => opt.name.toLowerCase() === trimmed.toLowerCase()
+      )
+    ) {
       onAdd(trimmed);
-      onChange(trimmed); // Seleciona automaticamente o novo item
       setNewOption("");
       setDialogOpen(false);
     }
@@ -45,12 +69,13 @@ export function SelectWithAdd({ label, value, onChange, options, onAdd }: Props)
     <div className="space-y-2">
       <label className="block font-medium">{label}</label>
       <div className="flex gap-2">
-        <Select value={value} onValueChange={onChange}>
+        <Select value={value.toString()} onValueChange={(val) => onChange(Number(val))}>
           <SelectTrigger className="flex-1">
-            <SelectValue placeholder={`Selecione ${label.toLowerCase()}`} />
+            <SelectValue placeholder={`Selecione ${label.toLowerCase()}`}>
+              {selectedLabel || `Selecione ${label.toLowerCase()}`}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
-            {/* Barra de pesquisa no dropdown */}
             <div className="p-2">
               <Input
                 placeholder="Pesquisar..."
@@ -59,13 +84,13 @@ export function SelectWithAdd({ label, value, onChange, options, onAdd }: Props)
                 className="w-full"
               />
             </div>
-            {/* Lista filtrada */}
             <div className="max-h-60 overflow-y-auto">
               {filteredOptions.length > 0 ? (
-                filteredOptions.map((option, i) => (
-                  <SelectItem key={i} value={option}>
-                    {option}
-                  </SelectItem>
+                filteredOptions.map((option) => (
+                 <SelectItem key={option.id} value={option.id.toString()}>
+              {option.name}
+            </SelectItem>
+
                 ))
               ) : (
                 <div className="p-2 text-sm text-muted-foreground">
@@ -76,7 +101,6 @@ export function SelectWithAdd({ label, value, onChange, options, onAdd }: Props)
           </SelectContent>
         </Select>
 
-        {/* Botão para abrir o Dialog */}
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
             <Button type="button" variant="outline" size="icon">
@@ -108,7 +132,13 @@ export function SelectWithAdd({ label, value, onChange, options, onAdd }: Props)
                 </Button>
                 <Button
                   onClick={handleAdd}
-                  disabled={!newOption.trim() || options.includes(newOption.trim())}
+                  disabled={
+                    !newOption.trim() ||
+                    options.some(
+                      (opt) =>
+                        opt.name.toLowerCase() === newOption.trim().toLowerCase()
+                    )
+                  }
                   className="legal-gradient text-white"
                 >
                   Salvar

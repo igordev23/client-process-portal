@@ -7,11 +7,14 @@ import { ClientManagement } from './ClientManagement';
 import { ProcessManagement } from './process/ProcessManagement';
 import { ManageEntities } from './ManageEntities';
 
-type TabType = 'dashboard' | 'clients' | 'processes' | 'manage';
+const tabs = ['dashboard', 'clients', 'processes', 'manage'] as const;
+type TabType = typeof tabs[number];
+
+
 
 export function Dashboard() {
   const { user, logout, clients, processes } = useAuth();
-  const filteredProcesses = processes.filter(p => !p.deleted);
+  const filteredProcesses = processes.filter(p => !(p as any).deleted);
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
 
   const getStatusColor = (status: string) => {
@@ -109,7 +112,7 @@ export function Dashboard() {
               Dashboard
             </button>
             <button
-              onClick={() => setActiveTab('clients')}
+              onClick={() => setActiveTab('clients' as TabType)}
               className={`py-4 px-1 border-b-2 font-medium text-sm ${
                 activeTab === 'clients'
                   ? 'border-blue-500 text-blue-600'
@@ -119,7 +122,7 @@ export function Dashboard() {
               Clientes
             </button>
             <button
-              onClick={() => setActiveTab('processes')}
+              onClick={() => setActiveTab('processes' as TabType)}
               className={`py-4 px-1 border-b-2 font-medium text-sm ${
                 activeTab === 'processes'
                   ? 'border-blue-500 text-blue-600'
@@ -129,7 +132,7 @@ export function Dashboard() {
               Processos
             </button>
             <button
-              onClick={() => setActiveTab('manage')}
+              onClick={() => setActiveTab('manage' as TabType)}
               className={`py-4 px-1 border-b-2 font-medium text-sm ${
                 activeTab === 'manage'
                   ? 'border-blue-500 text-blue-600'
@@ -210,75 +213,76 @@ export function Dashboard() {
         {/* Recent Processes and Clients */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Card>
-            <CardHeader>
-              <CardTitle>Processos Recentes</CardTitle>
-              <CardDescription>
-                Últimos processos atualizados
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {filteredProcesses.length === 0 ? (
-                <p className="text-center text-gray-500">Nenhum processo encontrado.</p>
-              ) : (
-                <div className="space-y-4">
-                  {filteredProcesses.slice(0, 5).map((process) => {
-                    const client = clients.find(c => c.id === process.clientId);
-                    return (
-                      <div key={process.id} className="flex items-center justify-between p-4 border rounded-lg">
-                        <div className="flex-1">
-                          <h4 className="font-medium text-sm">{process.title}</h4>
-                          <p className="text-xs text-gray-500">{client?.name}</p>
-                          <p className="text-xs text-gray-400">{process.processNumber}</p>
-                        </div>
-                        <div className="text-right">
-                          <Badge className={`text-xs ${getStatusColor(process.status)}`}>
-                            {getStatusText(process.status)}
-                          </Badge>
-                          <p className="text-xs text-gray-400 mt-1">
-                            {new Date(process.lastUpdate).toLocaleDateString('pt-BR')}
-                          </p>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+  <CardHeader>
+    <CardTitle>Processos Recentes</CardTitle>
+    <CardDescription>
+      Últimos processos atualizados
+    </CardDescription>
+  </CardHeader>
+  <CardContent>
+    {filteredProcesses.length === 0 ? (
+      <p className="text-center text-gray-500">Nenhum processo encontrado.</p>
+    ) : (
+      <div className="space-y-4">
+        {filteredProcesses.slice(0, 5).map((process, index) => {
+          const client = clients.find(c => c.id === process.clientId);
+          return (
+            <div key={process.id || `process-${index}`} className="flex items-center justify-between p-4 border rounded-lg">
+              <div className="flex-1">
+                <h4 className="font-medium text-sm">{process.title}</h4>
+                <p className="text-xs text-gray-500">{client?.name}</p>
+                <p className="text-xs text-gray-400">{process.processNumber}</p>
+              </div>
+              <div className="text-right">
+                <Badge className={`text-xs ${getStatusColor(process.status)}`}>
+                  {getStatusText(process.status)}
+                </Badge>
+                <p className="text-xs text-gray-400 mt-1">
+                  {new Date(process.lastUpdate).toLocaleDateString('pt-BR')}
+                </p>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    )}
+  </CardContent>
+</Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Clientes Recentes</CardTitle>
-              <CardDescription>
-                Últimos clientes cadastrados
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {clients.length === 0 ? (
-                <p className="text-center text-gray-500">Nenhum cliente encontrado.</p>
-              ) : (
-                <div className="space-y-4">
-                  {clients.slice(0, 5).map((client) => (
-                    <div key={client.id} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div className="flex-1">
-                        <h4 className="font-medium text-sm">{client.name}</h4>
-                        <p className="text-xs text-gray-500">{client.cpf}</p>
-                        <p className="text-xs text-gray-400">{client.email}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-xs font-mono bg-gray-100 px-2 py-1 rounded">
-                          {client.accessKey}
-                        </p>
-                        <p className="text-xs text-gray-400 mt-1">
-                          {new Date(client.createdAt).toLocaleDateString('pt-BR')}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+<Card>
+  <CardHeader>
+    <CardTitle>Clientes Recentes</CardTitle>
+    <CardDescription>
+      Últimos clientes cadastrados
+    </CardDescription>
+  </CardHeader>
+  <CardContent>
+    {clients.length === 0 ? (
+      <p className="text-center text-gray-500">Nenhum cliente encontrado.</p>
+    ) : (
+      <div className="space-y-4">
+        {clients.slice(0, 5).map((client, index) => (
+          <div key={client.id || `client-${index}`} className="flex items-center justify-between p-4 border rounded-lg">
+            <div className="flex-1">
+              <h4 className="font-medium text-sm">{client.name}</h4>
+              <p className="text-xs text-gray-500">{client.cpf}</p>
+              <p className="text-xs text-gray-400">{client.email}</p>
+            </div>
+            <div className="text-right">
+              <p className="text-xs font-mono bg-gray-100 px-2 py-1 rounded">
+                {client.accessKey}
+              </p>
+              <p className="text-xs text-gray-400 mt-1">
+                {new Date(client.createdAt).toLocaleDateString('pt-BR')}
+              </p>
+            </div>
+          </div>
+        ))}
+      </div>
+    )}
+  </CardContent>
+</Card>
+
         </div>
       </main>
     </div>

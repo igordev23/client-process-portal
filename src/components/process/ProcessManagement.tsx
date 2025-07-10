@@ -6,8 +6,7 @@ import { ProcessCard } from './ProcessCard';
 import { ProcessUpdateDialog } from './ProcessUpdateDialog';
 import { ProcessFilter } from './ProcessFilter';
 import { toast } from '@/hooks/use-toast';
-import { exportProcessesToExcel } from '@/lib/export/processExporter'; //função de exportar
-
+import { exportProcessesToExcel } from '@/lib/export/processExporter';
 
 export function ProcessManagement({ onBack }: { onBack: () => void }) {
   const {
@@ -32,13 +31,17 @@ export function ProcessManagement({ onBack }: { onBack: () => void }) {
 
   const filteredProcesses = processes.filter((process) => {
     if ((process as any).deleted) return false;
-    const client = clients.find((c) => c.id === process.clientId);
+
+    const clientId = (process as any).clientid ?? process.clientId;
+    const client = clients.find((c) => String(c.id) === String(clientId));
+
     const lowerSearch = searchTerm.toLowerCase();
     const matchesSearch =
       process.title.toLowerCase().includes(lowerSearch) ||
       process.processNumber.toLowerCase().includes(lowerSearch) ||
       client?.name.toLowerCase().includes(lowerSearch) ||
       client?.cpf.includes(searchTerm);
+
     const matchesStatus = statusFilter === 'all' || process.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
@@ -87,20 +90,17 @@ export function ProcessManagement({ onBack }: { onBack: () => void }) {
 
   return (
     <div className="min-h-screen bg-gray-50">
-    <ProcessForm
-  key={selectedProcess?.id || 'new'} // ✅ Força recriação
-  isOpen={isAddDialogOpen || isEditDialogOpen}
-  onOpenChange={(open) => {
-    if (!open) handleCloseForm();
-  }}
-  onSubmit={handleFormSubmit}
-  user={user}
-  clients={clients}
-  initialData={isEditDialogOpen ? selectedProcess : undefined}
-/>
-
-
-
+      <ProcessForm
+        key={selectedProcess?.id || 'new'}
+        isOpen={isAddDialogOpen || isEditDialogOpen}
+        onOpenChange={(open) => {
+          if (!open) handleCloseForm();
+        }}
+        onSubmit={handleFormSubmit}
+        user={user}
+        clients={clients}
+        initialData={isEditDialogOpen ? selectedProcess : undefined}
+      />
 
       <ProcessUpdateDialog
         isOpen={isUpdateDialogOpen}
@@ -151,7 +151,15 @@ export function ProcessManagement({ onBack }: { onBack: () => void }) {
             <Card className="py-8 text-center text-gray-500">Nenhum processo encontrado</Card>
           ) : (
             filteredProcesses.map((process) => {
-              const client = clients.find((c) => c.id === process.clientId);
+              const rawClientId = (process as any).clientid ?? process.clientId;
+              const clientFromList = clients.find((c) => String(c.id) === String(rawClientId));
+
+              const client =
+                clientFromList ??
+                ((process as any).clientName
+                  ? { name: (process as any).clientName, cpf: '' }
+                  : undefined);
+
               return (
                 <ProcessCard
                   key={process.id}

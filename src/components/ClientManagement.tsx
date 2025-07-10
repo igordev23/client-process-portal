@@ -13,7 +13,9 @@ interface ClientManagementProps {
 }
 
 export function ClientManagement({ onBack }: ClientManagementProps) {
-  const { clients, addClient, updateClient, deleteClient, user } = useAuth();
+  const { clients, addClient, updateClient, deleteClient, user, users } = useAuth();
+  // Log para conferir os dados dos clients no momento da renderização
+  console.log('Clients dentro do ClientManagement:', clients);
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingClient, setEditingClient] = useState<Client | null>(null);
@@ -26,10 +28,11 @@ export function ClientManagement({ onBack }: ClientManagementProps) {
   });
 
   const filteredClients = clients.filter(client =>
-    client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    client.cpf.includes(searchTerm) ||
-    client.email.toLowerCase().includes(searchTerm.toLowerCase())
+    (client.name?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false) ||
+    (client.cpf?.includes(searchTerm) ?? false) ||
+    (client.email?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false)
   );
+
 
   const resetForm = () => {
     setFormData({ name: '', cpf: '', email: '', phone: '' });
@@ -38,15 +41,16 @@ export function ClientManagement({ onBack }: ClientManagementProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (editingClient) {
       updateClient(editingClient.id, formData);
       setEditingClient(null);
     } else {
-      addClient(formData);
+      addClient({ ...formData });
+
       setIsAddDialogOpen(false);
     }
-    
+
     resetForm();
   };
 
@@ -88,7 +92,7 @@ export function ClientManagement({ onBack }: ClientManagementProps) {
               </Button>
               <h1 className="text-xl font-semibold text-gray-900">Gestão de Clientes</h1>
             </div>
-            
+
             <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
               <DialogTrigger asChild>
                 <Button className="legal-gradient text-white">
@@ -111,7 +115,7 @@ export function ClientManagement({ onBack }: ClientManagementProps) {
                     <Input
                       id="name"
                       value={formData.name}
-                      onChange={(e) => setFormData({...formData, name: e.target.value})}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                       required
                     />
                   </div>
@@ -121,7 +125,7 @@ export function ClientManagement({ onBack }: ClientManagementProps) {
                       id="cpf"
                       placeholder="000.000.000-00"
                       value={formData.cpf}
-                      onChange={(e) => setFormData({...formData, cpf: e.target.value})}
+                      onChange={(e) => setFormData({ ...formData, cpf: e.target.value })}
                       required
                     />
                   </div>
@@ -131,7 +135,7 @@ export function ClientManagement({ onBack }: ClientManagementProps) {
                       id="email"
                       type="email"
                       value={formData.email}
-                      onChange={(e) => setFormData({...formData, email: e.target.value})}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                       required
                     />
                   </div>
@@ -141,7 +145,7 @@ export function ClientManagement({ onBack }: ClientManagementProps) {
                       id="phone"
                       placeholder="(11) 99999-9999"
                       value={formData.phone}
-                      onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                       required
                     />
                   </div>
@@ -207,17 +211,23 @@ export function ClientManagement({ onBack }: ClientManagementProps) {
                         <p><strong>CPF:</strong> {formatCPF(client.cpf)}</p>
                         <p><strong>Email:</strong> {client.email}</p>
                         <p><strong>Telefone:</strong> {formatPhone(client.phone)}</p>
-                        <p><strong>Chave de Acesso:</strong> 
+                        <p><strong>Chave de Acesso:</strong>
                           <span className="ml-2 font-mono bg-gray-100 px-2 py-1 rounded text-xs">
-                            {client.accessKey}
+                            {client.accesskey}
                           </span>
                         </p>
+                        <p><strong>Cadastrado por:</strong> {
+                          users.find(u => Number(u.id) === Number(client.createdby))?.name || 'Desconhecido'
+                        }</p>
+
+
                       </div>
                       <p className="text-xs text-gray-400 mt-2">
-                        Cadastrado em: {new Date(client.createdAt).toLocaleDateString('pt-BR')}
+                        Cadastrado em: {client.createdat ? new Date(client.createdat).toLocaleDateString('pt-BR') : 'Data inválida'}
                       </p>
+
                     </div>
-                    
+
                     <div className="flex space-x-2 mt-4 md:mt-0">
                       <Button
                         variant="outline"
@@ -259,7 +269,7 @@ export function ClientManagement({ onBack }: ClientManagementProps) {
                   <Input
                     id="edit-name"
                     value={formData.name}
-                    onChange={(e) => setFormData({...formData, name: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     required
                   />
                 </div>
@@ -268,7 +278,7 @@ export function ClientManagement({ onBack }: ClientManagementProps) {
                   <Input
                     id="edit-cpf"
                     value={formData.cpf}
-                    onChange={(e) => setFormData({...formData, cpf: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, cpf: e.target.value })}
                     required
                   />
                 </div>
@@ -278,7 +288,7 @@ export function ClientManagement({ onBack }: ClientManagementProps) {
                     id="edit-email"
                     type="email"
                     value={formData.email}
-                    onChange={(e) => setFormData({...formData, email: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     required
                   />
                 </div>
@@ -287,7 +297,7 @@ export function ClientManagement({ onBack }: ClientManagementProps) {
                   <Input
                     id="edit-phone"
                     value={formData.phone}
-                    onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                     required
                   />
                 </div>
