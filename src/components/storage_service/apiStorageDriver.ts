@@ -1,5 +1,7 @@
+
 // src/components/storage_service/apiStorageDriver.ts
 import { StorageDriver } from './StorageDriver';
+import { toSnakeCase } from '@/components/ui/caseConverter';
 
 const API_BASE = 'http://localhost:3000/sistema';
 
@@ -7,7 +9,7 @@ export const apiStorageDriver: StorageDriver & {
   createItem?: <T>(key: string, value: T) => Promise<T>;
   updateItem?: <T>(key: string, id: string, value: T) => Promise<T>;
   deleteItem?: (key: string, id: string) => Promise<void>;
-  getUserByEmailAndPassword?: (email: string, password: string) => Promise<any | null>; // 👈 ADICIONADO
+  getUserByEmailAndPassword?: (email: string, password: string) => Promise<any | null>;
 } = {
   
   async getItem<T>(key: string, fallback?: T): Promise<T> {
@@ -31,22 +33,46 @@ export const apiStorageDriver: StorageDriver & {
   },
 
   async createItem<T>(key: string, value: T): Promise<T> {
+    console.log('Enviando para API:', value);
+    
+    // Converte para snake_case antes de enviar para a API
+    const snakeCaseValue = toSnakeCase(value);
+    console.log('Convertido para snake_case:', snakeCaseValue);
+    
     const res = await fetch(`${API_BASE}/${key}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(value),
+      body: JSON.stringify(snakeCaseValue),
     });
-    if (!res.ok) throw new Error(`Erro ao criar item em ${key}`);
+    
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error('Erro na API:', errorText);
+      throw new Error(`Erro ao criar item em ${key}: ${res.status} - ${errorText}`);
+    }
+    
     return res.json();
   },
 
   async updateItem<T>(key: string, id: string, value: T): Promise<T> {
+    console.log('Atualizando via API:', value);
+    
+    // Converte para snake_case antes de enviar para a API
+    const snakeCaseValue = toSnakeCase(value);
+    console.log('Convertido para snake_case:', snakeCaseValue);
+    
     const res = await fetch(`${API_BASE}/${key}/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(value),
+      body: JSON.stringify(snakeCaseValue),
     });
-    if (!res.ok) throw new Error(`Erro ao atualizar item ${id} em ${key}`);
+    
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error('Erro na API:', errorText);
+      throw new Error(`Erro ao atualizar item ${id} em ${key}: ${res.status} - ${errorText}`);
+    }
+    
     return res.json();
   },
 
@@ -54,10 +80,14 @@ export const apiStorageDriver: StorageDriver & {
     const res = await fetch(`${API_BASE}/${key}/${id}`, {
       method: 'DELETE',
     });
-    if (!res.ok) throw new Error(`Erro ao deletar item ${id} em ${key}`);
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error('Erro na API:', errorText);
+      throw new Error(`Erro ao deletar item ${id} em ${key}: ${res.status} - ${errorText}`);
+    }
   },
 
-  // ✅ Novo método de login via API
+  // ✅ Método de login via API
   async getUserByEmailAndPassword(email: string, password: string): Promise<any | null> {
     const res = await fetch(`${API_BASE}/user/login`, {
       method: 'POST',

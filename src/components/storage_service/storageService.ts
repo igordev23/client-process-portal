@@ -1,3 +1,4 @@
+
 import { StorageDriver } from './StorageDriver';
 import { localStorageDriver } from './localStorageDriver';
 import { apiStorageDriver } from './apiStorageDriver';
@@ -9,7 +10,10 @@ const driver: StorageDriver = mode === 'api' ? apiStorageDriver : localStorageDr
 
 // Envolve métodos apenas no modo local com conversores
 function wrapWithConverters(driver: StorageDriver): StorageDriver {
-  if (mode !== 'local') return driver;
+  if (mode === 'api') {
+    // No modo API, não aplicamos conversão aqui pois o apiStorageDriver já faz isso
+    return driver;
+  }
 
   return {
     getItem: async <T>(key: string, fallback?: T): Promise<T> => {
