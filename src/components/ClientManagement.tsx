@@ -14,6 +14,8 @@ interface ClientManagementProps {
 
 export function ClientManagement({ onBack }: ClientManagementProps) {
 const { clients, addClient, updateClient, deleteClient, user, users } = useAuth();
+// Log para conferir os dados dos clients no momento da renderização
+  console.log('Clients dentro do ClientManagement:', clients);
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingClient, setEditingClient] = useState<Client | null>(null);
@@ -44,7 +46,8 @@ const { clients, addClient, updateClient, deleteClient, user, users } = useAuth(
       updateClient(editingClient.id, formData);
       setEditingClient(null);
     } else {
-      addClient(formData);
+      addClient({ ...formData });
+
       setIsAddDialogOpen(false);
     }
     
@@ -210,17 +213,19 @@ const { clients, addClient, updateClient, deleteClient, user, users } = useAuth(
                         <p><strong>Telefone:</strong> {formatPhone(client.phone)}</p>
                         <p><strong>Chave de Acesso:</strong> 
                           <span className="ml-2 font-mono bg-gray-100 px-2 py-1 rounded text-xs">
-                            {client.accessKey}
+                            {client.accesskey}
                           </span>
                         </p>
-                        <p><strong>Cadastrado por:</strong> {
-                          users.find(u => u.id === client.createdBy)?.name || 'Desconhecido'
-                        }</p>
+                       <p><strong>Cadastrado por:</strong> {
+                      users.find(u => Number(u.id) === Number(client.createdby))?.name || 'Desconhecido'
+                    }</p>
+
 
                       </div>
                       <p className="text-xs text-gray-400 mt-2">
-                        Cadastrado em: {new Date(client.createdAt).toLocaleDateString('pt-BR')}
-                      </p>
+                      Cadastrado em: {client.createdat ? new Date(client.createdat).toLocaleDateString('pt-BR') : 'Data inválida'}
+                    </p>
+
                     </div>
                     
                     <div className="flex space-x-2 mt-4 md:mt-0">

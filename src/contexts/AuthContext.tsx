@@ -214,6 +214,13 @@ const storedUser = isApiMode
     const storedComarcasVaras = await storageService.getItem<string[]>('comarcasVaras', []); // já estava certo
     const storedSituacoesPrisionais = await storageService.getItem<string[]>('situacoesPrisionais', []); // já estava certo
 
+    // Logs para inspeção dos dados carregados
+  console.log('loaded user:', storedUser);
+  console.log('loaded clients:', storedClients);
+  storedClients.forEach((c, i) => console.log(`Client ${i}:`, c));
+  console.log('loaded users:', storedUsers);
+  storedUsers.forEach((u, i) => console.log(`User ${i}:`, u));
+
     setUser(storedUser);
     setClients(storedClients);
     setProcesses(storedProcesses);
@@ -221,9 +228,11 @@ const storedUser = isApiMode
     setTipoCrimes(storedTipoCrimes);
     setComarcasVaras(storedComarcasVaras);
     setSituacoesPrisionais(storedSituacoesPrisionais);
+    
   }
 
   loadData();
+  
 }, []);
 
 function toSnakeCase(obj: any) {
@@ -351,32 +360,43 @@ if (!isApiMode) {
   };
 
  const updateClient = async (id: string, updates: Partial<Client>) => {
-    try {
-      const updatedClients = clients.map(client =>
-        client.id === id ? { ...client, ...updates, updatedAt: new Date().toISOString() } : client
-      );
-
-      if (storageService.updateItem) {
-        const clientToUpdate = updatedClients.find(c => c.id === id)!;
-        await storageService.updateItem<Client>('clients', id, clientToUpdate);
-        setClients(updatedClients);
-        await storageService.setItem('clients', updatedClients);
-      } else {
-        // Local fallback
-        setClients(updatedClients);
-        await storageService.setItem('clients', updatedClients);
-      }
-
-      toast({ title: 'Cliente atualizado', description: 'Dados do cliente foram atualizados com sucesso' });
-    } catch (error) {
-      console.error('Erro ao atualizar cliente:', error);
-      toast({
-        title: 'Erro ao atualizar cliente',
-        description: 'Verifique sua conexão com o servidor',
-        variant: 'destructive',
-      });
+  try {
+    const currentClient = clients.find(client => client.id === id);
+    if (!currentClient) {
+      throw new Error('Cliente não encontrado');
     }
-  };
+
+    const updatedClient: Client = {
+      ...currentClient,
+      ...updates,
+      accessKey: currentClient.accessKey, // garante que accessKey original seja mantido
+      updatedAt: new Date().toISOString(),
+    };
+
+    if (storageService.updateItem) {
+      await storageService.updateItem<Client>('clients', id, updatedClient);
+      const updatedClients = clients.map(c => (c.id === id ? updatedClient : c));
+      setClients(updatedClients);
+      await storageService.setItem('clients', updatedClients);
+    } else {
+      const updatedClients = clients.map(c => (c.id === id ? updatedClient : c));
+      setClients(updatedClients);
+      await storageService.setItem('clients', updatedClients);
+    }
+
+    toast({
+      title: 'Cliente atualizado',
+      description: 'Dados do cliente foram atualizados com sucesso',
+    });
+  } catch (error) {
+    console.error('Erro ao atualizar cliente:', error);
+    toast({
+      title: 'Erro ao atualizar cliente',
+      description: 'Verifique sua conexão com o servidor',
+      variant: 'destructive',
+    });
+  }
+};
 
   const deleteClient = async (id: string) => {
     if (user?.role !== 'admin') {
