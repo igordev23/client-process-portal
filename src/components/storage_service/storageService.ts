@@ -2,16 +2,14 @@
 import { StorageDriver } from './StorageDriver';
 import { localStorageDriver } from './localStorageDriver';
 import { apiStorageDriver } from './apiStorageDriver';
-import { toCamelCase, toSnakeCase } from '@/components/ui//caseConverter';
+import { toCamelCase, toSnakeCase } from '@/components/ui/caseConverter';
 
-const mode = import.meta.env.VITE_STORAGE_MODE || 'local'; // 'local' ou 'api'
+const mode = import.meta.env.VITE_STORAGE_MODE || 'local';
 
 const driver: StorageDriver = mode === 'api' ? apiStorageDriver : localStorageDriver;
 
-// Envolve métodos apenas no modo local com conversores
 function wrapWithConverters(driver: StorageDriver): StorageDriver {
   if (mode === 'api') {
-    // No modo API, não aplicamos conversão aqui pois o apiStorageDriver já faz isso
     return driver;
   }
 

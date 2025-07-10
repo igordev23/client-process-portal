@@ -1,66 +1,13 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+
+import React, { createContext, useContext, ReactNode } from 'react';
 import { toast } from '@/hooks/use-toast';
-import { storageService } from '@/components/storage_service/storageService'; // ajuste o caminho conforme sua estrutura
-import { localStorageDriver } from '@/components/storage_service/localStorageDriver';
-import { toCamelCase } from '@/components/ui/caseConverter';
-
-
-export type UserRole = 'admin' | 'employee' | 'client';
-export interface User {
-  id: string;
-  name: string;
-  email: string;
-  cpf: string;
-  role: UserRole;
-  isActive: boolean;
-  createdAt: string;
-  password: string; // 🔥 Novo campo
-}
-
-
-export interface Client {
-  id: string;
-  name: string;
-  cpf: string;
-  email: string;
-  phone: string;
-  accessKey: string;
-  createdAt: string;
-  updatedAt: string;
-  createdBy: string; // 🔥 ID do usuário que cadastrou
-}
-
-export interface ProcessUpdate {
-  id: string;
-  date: string;
-  description: string;
-  author: string;
-}
-
-export interface Process {
-  id: string;
-  clientId: string;
-  processNumber: string;
-  title: string;
-  status: 'pending' | 'active' | 'completed' | 'cancelled';
-  startDate: string;
-  lastUpdate: string;
-  description: string;
-  lawyer: string;
-  updates: ProcessUpdate[];
-  situacaoPrisional?: string;
-  comarcaVara?: string;
-  tipoCrime?: string;
-   // Adicione estes campos para armazenar os IDs que o backend espera
-  situacaoPrisionalId?: number;
-  comarcaVaraId?: number;
-  tipoCrimeId?: number;
-}
-interface OptionItem {
-  id: number;
-  name: string;
-}
-
+import { User, Client, Process, ProcessUpdate } from '@/types/auth';
+import { useAuthData } from '@/hooks/useAuthData';
+import { authService } from '@/services/authService';
+import { clientService } from '@/services/clientService';
+import { processService } from '@/services/processService';
+import { entityService } from '@/services/entityService';
+import { storageService } from '@/components/storage_service/storageService';
 
 interface AuthContextType {
   user: User | null;
@@ -70,7 +17,7 @@ interface AuthContextType {
   clients: Client[];
   processes: Process[];
   users: User[];
-addClient: (client: Omit<Client, 'id' | 'accessKey' | 'createdAt' | 'updatedAt' | 'createdBy'>) => void;
+  addClient: (client: Omit<Client, 'id' | 'accessKey' | 'createdAt' | 'updatedAt' | 'createdBy'>) => void;
   updateClient: (id: string, client: Partial<Client>) => void;
   deleteClient: (id: string) => void;
   addProcess: (process: Omit<Process, 'id' | 'updates'>) => void;
@@ -80,17 +27,14 @@ addClient: (client: Omit<Client, 'id' | 'accessKey' | 'createdAt' | 'updatedAt' 
   getClientProcesses: (clientId: string) => Process[];
   updateProcessUpdate: (processId: string, updateId: string, newUpdate: Partial<ProcessUpdate>) => void;
   deleteProcessUpdate: (processId: string, updateId: string) => void;
-
   tipoCrimes: string[];
   addTipoCrime: (value: string) => void;
   removeTipoCrime: (value: string) => void;
   editTipoCrime: (oldValue: string, newValue: string) => void;
-
   comarcasVaras: string[];
   addComarcaVara: (value: string) => void;
   removeComarcaVara: (value: string) => void;
   editComarcaVara: (oldValue: string, newValue: string) => void;
-
   situacoesPrisionais: string[];
   addSituacaoPrisional: (value: string) => void;
   removeSituacaoPrisional: (value: string) => void;
@@ -99,235 +43,36 @@ addClient: (client: Omit<Client, 'id' | 'accessKey' | 'createdAt' | 'updatedAt' 
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Dados iniciais
-const initialUsers: User[] = [
-  {
-    id: '1',
-    name: 'Dra. Maria Silva',
-    email: 'maria@escritorio.com',
-    cpf: '123.456.789-00',
-    role: 'admin',
-    isActive: true,
-    createdAt: new Date().toISOString(),
-    password: 'admin123', // 🔥 Senha definida no sistema
-  },
-  {
-    id: '2',
-    name: 'João Santos',
-    email: 'joao@escritorio.com',
-    cpf: '987.654.321-00',
-    role: 'employee',
-    isActive: true,
-    createdAt: new Date().toISOString(),
-    password: 'func123', // 🔥 Senha definida no sistema
-  },
-];
-
-const initialClients: Client[] = [
-  {
-    id: '1',
-    name: 'Ana Carolina Pereira',
-    cpf: '111.222.333-44',
-    email: 'ana@email.com',
-    phone: '(11) 99999-1111',
-    accessKey: 'ACP2024001',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    createdBy: '1', // ID do usuário que cadastrou
-  },
-  {
-    id: '2',
-    name: 'Roberto Lima',
-    cpf: '555.666.777-88',
-    email: 'roberto@email.com',
-    phone: '(11) 99999-2222',
-    accessKey: 'RL2024002',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    createdBy: '1', // ID do usuário que cadastrou
-  },
-];
-
-const initialProcesses: Process[] = [
-  {
-    id: '1',
-    clientId: '1',
-    processNumber: '1234567-89.2024.8.26.0001',
-    title: 'Ação de Revisão de Benefício',
-    status: 'active',
-    startDate: '2024-01-15',
-    lastUpdate: '2024-06-20',
-    description: 'Revisão de auxílio-doença junto ao INSS',
-    lawyer: 'Dra. Maria Silva',
-    updates: [
-      {
-        id: '1',
-        date: '2024-06-20',
-        description: 'Audiência agendada para 15/07/2024',
-        author: 'Dra. Maria Silva',
-      },
-      {
-        id: '2',
-        date: '2024-05-10',
-        description: 'Documentos complementares enviados',
-        author: 'João Santos',
-      },
-    ],
-    situacaoPrisional: 'Preso preventivamente',
-    comarcaVara: 'Vara Criminal de São Paulo',
-    tipoCrime: 'Receptação',
-  },
-  {
-    id: '2',
-    clientId: '2',
-    processNumber: '9876543-21.2024.8.26.0002',
-    title: 'Ação Trabalhista',
-    status: 'pending',
-    startDate: '2024-03-01',
-    lastUpdate: '2024-06-18',
-    description: 'Reclamação trabalhista por horas extras',
-    lawyer: 'Dra. Maria Silva',
-    updates: [
-      {
-        id: '3',
-        date: '2024-06-18',
-        description: 'Aguardando resposta da empresa',
-        author: 'Dra. Maria Silva',
-      },
-    ],
-    situacaoPrisional: 'Em liberdade',
-    comarcaVara: '2ª Vara do Trabalho de SP',
-    tipoCrime: 'Trabalhista',
-  },
-];
-
-
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [clients, setClients] = useState<Client[]>([]);
-  const [processes, setProcesses] = useState<Process[]>([]);
-  const [users, setUsers] = useState<User[]>([]);
+  const {
+    user,
+    setUser,
+    clients,
+    setClients,
+    processes,
+    setProcesses,
+    users,
+    tipoCrimes,
+    setTipoCrimes,
+    comarcasVaras,
+    setComarcasVaras,
+    situacoesPrisionais,
+    setSituacoesPrisionais,
+  } = useAuthData();
 
-  const [tipoCrimes, setTipoCrimes] = useState<string[]>([]);
-  const [comarcasVaras, setComarcasVaras] = useState<string[]>([]);
-  const [situacoesPrisionais, setSituacoesPrisionais] = useState<string[]>([]);
-  const isApiMode = import.meta.env.VITE_STORAGE_MODE === 'api';
-
- useEffect(() => {
-  async function loadData() {
-    const storedUser = isApiMode
-      ? null // no modo API, não tenta carregar currentUser localmente
-      : await localStorageDriver.getItem<User | null>('currentUser', null);
-
-    // Pega os dados originais do storage (podem estar em snake_case)
-    const rawClients = await storageService.getItem<any[]>('clients', initialClients);
-    const rawProcesses = await storageService.getItem<any[]>('processes', initialProcesses);
-    const rawUsers = await storageService.getItem<any[]>('user', initialUsers);
-    const storedTipoCrimes = await storageService.getItem<string[]>('tiposCrime', []);
-    const storedComarcasVaras = await storageService.getItem<string[]>('comarcasVaras', []);
-    const storedSituacoesPrisionais = await storageService.getItem<string[]>('situacoesPrisionais', []);
-
-    // Converte para camelCase para uso interno no React
-    const storedClients = toCamelCase(rawClients);
-    const storedProcesses = toCamelCase(rawProcesses);
-    const storedUsers = toCamelCase(rawUsers);
-
-    // Logs para inspeção dos dados carregados já convertidos
-    console.log('loaded processes:', storedProcesses);
-    storedProcesses.forEach((p, i) => console.log(`Processo ${i}:`, p));
-    console.log('loaded user:', storedUser);
-    console.log('loaded clients:', storedClients);
-    storedClients.forEach((c, i) => console.log(`Client ${i}:`, c));
-    console.log('loaded users:', storedUsers);
-    storedUsers.forEach((u, i) => console.log(`User ${i}:`, u));
-
-    setUser(storedUser);
-    setClients(storedClients);
-    setProcesses(storedProcesses);
-    setUsers(storedUsers);
-    setTipoCrimes(storedTipoCrimes);
-    setComarcasVaras(storedComarcasVaras);
-    setSituacoesPrisionais(storedSituacoesPrisionais);
-  }
-
-  loadData();
-}, []);
-
-
-function toSnakeCase(obj: any) {
-  const newObj: any = {};
-  for (const key in obj) {
-    if (Object.prototype.hasOwnProperty.call(obj, key)) {
-      const snakeKey = key.replace(/([A-Z])/g, "_$1").toLowerCase();
-      newObj[snakeKey] = obj[key];
+  const login = async (email: string, password: string): Promise<boolean> => {
+    const loggedUser = await authService.login(email, password);
+    if (loggedUser) {
+      setUser(loggedUser);
+      return true;
     }
-  }
-  return newObj;
-}
-
-
- const login = async (email: string, password: string): Promise<boolean> => {
-  try {
-    let foundUser: User | null = null;
-
-    if (isApiMode && storageService.getUserByEmailAndPassword) {
-      foundUser = await storageService.getUserByEmailAndPassword(email, password);
-    } else {
-      const storedUsers = await storageService.getItem<User[]>('user', []);
-      foundUser = storedUsers.find(
-        u => u.email === email && u.password === password && u.isActive
-      ) || null;
-    }
-
-    if (!foundUser) {
-      toast({
-        title: 'Erro no login',
-        description: 'Email ou senha incorretos',
-        variant: 'destructive',
-      });
-      return false;
-    }
-
-    setUser(foundUser);
-
-    if (!isApiMode) {
-      await storageService.setItem('currentUser', foundUser);
-    }
-
-    toast({
-      title: 'Login realizado com sucesso',
-      description: `Bem-vindo(a), ${foundUser.name}!`,
-    });
-
-    return true;
-  } catch (error) {
-    console.error('Erro ao buscar usuário:', error);
-    toast({
-      title: 'Erro no login',
-      description: 'Erro ao conectar com o servidor',
-      variant: 'destructive',
-    });
     return false;
-  }
-};
-
-
+  };
 
   const logout = () => {
     setUser(null);
-if (!isApiMode) {
-  storageService.removeItem('currentUser');
-}
-    toast({ title: 'Logout realizado', description: 'Até logo!' });
+    authService.logout();
   };
-
-  const generateAccessKey = (name: string): string => {
-    const initials = name.split(' ').map(n => n[0]).join('').toUpperCase();
-    const year = new Date().getFullYear();
-    const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
-    return `${initials}${year}${random}`;
-  };
-
 
   const addClient = async (
     clientData: Omit<Client, 'id' | 'accessKey' | 'createdAt' | 'updatedAt' | 'createdBy'>
@@ -341,326 +86,137 @@ if (!isApiMode) {
       return;
     }
 
-    const newClient: Client = {
-      ...clientData,
-      id: Date.now().toString(),
-      accessKey: generateAccessKey(clientData.name),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      createdBy: user.id,
-    };
-
-    try {
-      if (storageService.createItem) {
-        // Use API driver
-        const savedClient = await storageService.createItem<Client>('clients', newClient);
-        const updatedClients = [...clients, savedClient];
-        setClients(updatedClients);
-        await storageService.setItem('clients', updatedClients); // Atualiza cache local
-      } else {
-        // Local fallback
-        const updatedClients = [...clients, newClient];
-        setClients(updatedClients);
-        await storageService.setItem('clients', updatedClients);
-      }
-
+    const newClient = await clientService.addClient(clientData, user);
+    if (newClient) {
+      const updatedClients = [...clients, newClient];
+      setClients(updatedClients);
+      await storageService.setItem('clients', updatedClients);
       toast({
         title: 'Cliente cadastrado',
         description: `Cliente ${newClient.name} cadastrado com sucesso`,
       });
-    } catch (error) {
-      console.error('Erro ao cadastrar cliente:', error);
-      toast({
-        title: 'Erro ao salvar cliente',
-        description: 'Verifique sua conexão com o servidor',
-        variant: 'destructive',
-      });
     }
   };
 
- const updateClient = async (id: string, updates: Partial<Client>) => {
-  try {
-    const currentClient = clients.find(client => client.id === id);
-    if (!currentClient) {
-      throw new Error('Cliente não encontrado');
-    }
-
-    const updatedClient: Client = {
-      ...currentClient,
-      ...updates,
-      accessKey: currentClient.accessKey, // garante que accessKey original seja mantido
-      updatedAt: new Date().toISOString(),
-    };
-
-    if (storageService.updateItem) {
-      await storageService.updateItem<Client>('clients', id, updatedClient);
-      const updatedClients = clients.map(c => (c.id === id ? updatedClient : c));
-      setClients(updatedClients);
-      await storageService.setItem('clients', updatedClients);
-    } else {
+  const updateClient = async (id: string, updates: Partial<Client>) => {
+    const updatedClient = await clientService.updateClient(id, updates, clients);
+    if (updatedClient) {
       const updatedClients = clients.map(c => (c.id === id ? updatedClient : c));
       setClients(updatedClients);
       await storageService.setItem('clients', updatedClients);
     }
-
-    toast({
-      title: 'Cliente atualizado',
-      description: 'Dados do cliente foram atualizados com sucesso',
-    });
-  } catch (error) {
-    console.error('Erro ao atualizar cliente:', error);
-    toast({
-      title: 'Erro ao atualizar cliente',
-      description: 'Verifique sua conexão com o servidor',
-      variant: 'destructive',
-    });
-  }
-};
+  };
 
   const deleteClient = async (id: string) => {
-    if (user?.role !== 'admin') {
-      toast({
-        title: 'Acesso negado',
-        description: 'Apenas administradores podem excluir clientes',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    try {
-      if (storageService.deleteItem) {
-        await storageService.deleteItem('clients', id);
-        const updatedClients = clients.filter(client => client.id !== id);
-        setClients(updatedClients);
-        await storageService.setItem('clients', updatedClients);
-      } else {
-        // Local fallback
-        const updatedClients = clients.filter(client => client.id !== id);
-        setClients(updatedClients);
-        await storageService.setItem('clients', updatedClients);
-      }
-      toast({ title: 'Cliente removido', description: 'Cliente foi removido do sistema' });
-    } catch (error) {
-      console.error('Erro ao remover cliente:', error);
-      toast({
-        title: 'Erro ao remover cliente',
-        description: 'Verifique sua conexão com o servidor',
-        variant: 'destructive',
-      });
+    const success = await clientService.deleteClient(id, user?.role || '');
+    if (success) {
+      const updatedClients = clients.filter(client => client.id !== id);
+      setClients(updatedClients);
+      await storageService.setItem('clients', updatedClients);
     }
   };
 
-  // Processes
- const addProcess = async (processData: Omit<Process, 'id' | 'updates'>) => {
-    if (!user) {
-      toast({
-        title: 'Ação não permitida',
-        description: 'É preciso estar logado para cadastrar um processo',
-        variant: 'destructive',
-      });
-      return;
-    }
+  const addProcess = async (processData: Omit<Process, 'id' | 'updates'>) => {
+    if (!user) return;
 
-    const newProcess: Process = {
-      ...processData,
-      id: Date.now().toString(),
-      updates: [],
-    };
-
-    try {
-      if (storageService.createItem) {
-        const savedProcess = await storageService.createItem<Process>('processes', newProcess);
-        const updatedProcesses = [...processes, savedProcess];
-        setProcesses(updatedProcesses);
-        await storageService.setItem('processes', updatedProcesses);
-      } else {
-        const updatedProcesses = [...processes, newProcess];
-        setProcesses(updatedProcesses);
-        await storageService.setItem('processes', updatedProcesses);
-      }
+    const newProcess = await processService.addProcess(processData, user);
+    if (newProcess) {
+      const updatedProcesses = [...processes, newProcess];
+      setProcesses(updatedProcesses);
+      await storageService.setItem('processes', updatedProcesses);
       toast({
         title: 'Processo cadastrado',
         description: `Processo ${newProcess.processNumber} foi cadastrado com sucesso`,
-      });
-    } catch (error) {
-      console.error('Erro ao cadastrar processo:', error);
-      toast({
-        title: 'Erro ao salvar processo',
-        description: 'Verifique sua conexão com o servidor',
-        variant: 'destructive',
       });
     }
   };
 
   const updateProcess = async (id: string, updates: Partial<Process>) => {
-    try {
+    const updatedProcess = await processService.updateProcess(id, updates, processes);
+    if (updatedProcess) {
       const updatedProcesses = processes.map(proc =>
-        proc.id === id ? { ...proc, ...updates, lastUpdate: new Date().toISOString() } : proc
+        proc.id === id ? updatedProcess : proc
       );
-
-      if (storageService.updateItem) {
-        const processToUpdate = updatedProcesses.find(p => p.id === id)!;
-        await storageService.updateItem<Process>('processes', id, processToUpdate);
-        setProcesses(updatedProcesses);
-        await storageService.setItem('processes', updatedProcesses);
-      } else {
-        setProcesses(updatedProcesses);
-        await storageService.setItem('processes', updatedProcesses);
-      }
-
-      toast({ title: 'Processo atualizado', description: 'Dados do processo foram atualizados' });
-    } catch (error) {
-      console.error('Erro ao atualizar processo:', error);
-      toast({
-        title: 'Erro ao atualizar processo',
-        description: 'Verifique sua conexão com o servidor',
-        variant: 'destructive',
-      });
+      setProcesses(updatedProcesses);
+      await storageService.setItem('processes', updatedProcesses);
     }
   };
 
   const deleteProcess = async (id: string) => {
-    try {
-      if (storageService.deleteItem) {
-        await storageService.deleteItem('processes', id);
-        const updatedProcesses = processes.filter(proc => proc.id !== id);
-        setProcesses(updatedProcesses);
-        await storageService.setItem('processes', updatedProcesses);
-      } else {
-        const updatedProcesses = processes.filter(proc => proc.id !== id);
-        setProcesses(updatedProcesses);
-        await storageService.setItem('processes', updatedProcesses);
-      }
-      toast({ title: 'Processo removido', description: 'Processo removido do sistema' });
-    } catch (error) {
-      console.error('Erro ao remover processo:', error);
-      toast({
-        title: 'Erro ao remover processo',
-        description: 'Verifique sua conexão com o servidor',
-        variant: 'destructive',
-      });
+    const success = await processService.deleteProcess(id);
+    if (success) {
+      const updatedProcesses = processes.filter(proc => proc.id !== id);
+      setProcesses(updatedProcesses);
+      await storageService.setItem('processes', updatedProcesses);
     }
   };
 
-  // Process Updates
   const addProcessUpdate = (processId: string, updateData: Omit<ProcessUpdate, 'id'>) => {
-    const updatedProcesses = processes.map(proc => {
-      if (proc.id === processId) {
-        const newUpdate: ProcessUpdate = {
-          id: Date.now().toString(),
-          ...updateData,
-        };
-        return {
-          ...proc,
-          updates: [...proc.updates, newUpdate],
-          lastUpdate: new Date().toISOString(),
-        };
-      }
-      return proc;
-    });
+    const updatedProcesses = processService.addProcessUpdate(processId, updateData, processes);
     setProcesses(updatedProcesses);
-    storageService.setItem('processes', updatedProcesses);
-    toast({ title: 'Atualização adicionada', description: 'Nova atualização do processo adicionada' });
   };
 
   const updateProcessUpdate = (processId: string, updateId: string, newUpdate: Partial<ProcessUpdate>) => {
-    const updatedProcesses = processes.map(proc => {
-      if (proc.id === processId) {
-        const updatedUpdates = proc.updates.map(upd =>
-          upd.id === updateId ? { ...upd, ...newUpdate } : upd
-        );
-        return {
-          ...proc,
-          updates: updatedUpdates,
-          lastUpdate: new Date().toISOString(),
-        };
-      }
-      return proc;
-    });
+    const updatedProcesses = processService.updateProcessUpdate(processId, updateId, newUpdate, processes);
     setProcesses(updatedProcesses);
-    storageService.setItem('processes', updatedProcesses);
-    toast({ title: 'Atualização modificada', description: 'Dados da atualização do processo foram modificados' });
   };
 
   const deleteProcessUpdate = (processId: string, updateId: string) => {
-    const updatedProcesses = processes.map(proc => {
-      if (proc.id === processId) {
-        const filteredUpdates = proc.updates.filter(upd => upd.id !== updateId);
-        return {
-          ...proc,
-          updates: filteredUpdates,
-          lastUpdate: new Date().toISOString(),
-        };
-      }
-      return proc;
-    });
+    const updatedProcesses = processService.deleteProcessUpdate(processId, updateId, processes);
     setProcesses(updatedProcesses);
-    storageService.setItem('processes', updatedProcesses);
-    toast({ title: 'Atualização removida', description: 'Atualização do processo removida' });
   };
 
   const getClientProcesses = (clientId: string) => {
-    return processes.filter(proc => proc.clientId === clientId);
+    return processService.getClientProcesses(clientId, processes);
   };
 
-  // Tipo Crimes
+  // Entity management functions
   const addTipoCrime = (value: string) => {
-    if (!tipoCrimes.includes(value)) {
-      const updated = [...tipoCrimes, value];
-      setTipoCrimes(updated);
-      storageService.setItem('tipoCrimes', updated);
-    }
+    const updated = entityService.addTipoCrime(value, tipoCrimes);
+    setTipoCrimes(updated);
   };
+
   const removeTipoCrime = (value: string) => {
-    const updated = tipoCrimes.filter(item => item !== value);
+    const updated = entityService.removeTipoCrime(value, tipoCrimes);
     setTipoCrimes(updated);
-    storageService.setItem('tipoCrimes', updated);
   };
+
   const editTipoCrime = (oldValue: string, newValue: string) => {
-    const updated = tipoCrimes.map(item => (item === oldValue ? newValue : item));
+    const updated = entityService.editTipoCrime(oldValue, newValue, tipoCrimes);
     setTipoCrimes(updated);
-    storageService.setItem('tipoCrimes', updated);
   };
 
-  // Comarcas Varas
   const addComarcaVara = (value: string) => {
-    if (!comarcasVaras.includes(value)) {
-      const updated = [...comarcasVaras, value];
-      setComarcasVaras(updated);
-      storageService.setItem('comarcasVaras', updated);
-    }
+    const updated = entityService.addComarcaVara(value, comarcasVaras);
+    setComarcasVaras(updated);
   };
+
   const removeComarcaVara = (value: string) => {
-    const updated = comarcasVaras.filter(item => item !== value);
+    const updated = entityService.removeComarcaVara(value, comarcasVaras);
     setComarcasVaras(updated);
-    storageService.setItem('comarcasVaras', updated);
   };
+
   const editComarcaVara = (oldValue: string, newValue: string) => {
-    const updated = comarcasVaras.map(item => (item === oldValue ? newValue : item));
+    const updated = entityService.editComarcaVara(oldValue, newValue, comarcasVaras);
     setComarcasVaras(updated);
-    storageService.setItem('comarcasVaras', updated);
   };
 
-  // Situações Prisionais
   const addSituacaoPrisional = (value: string) => {
-    if (!situacoesPrisionais.includes(value)) {
-      const updated = [...situacoesPrisionais, value];
-      setSituacoesPrisionais(updated);
-      storageService.setItem('situacoesPrisionais', updated);
-    }
-  };
-  const removeSituacaoPrisional = (value: string) => {
-    const updated = situacoesPrisionais.filter(item => item !== value);
+    const updated = entityService.addSituacaoPrisional(value, situacoesPrisionais);
     setSituacoesPrisionais(updated);
-    storageService.setItem('situacoesPrisionais', updated);
-  };
-  const editSituacaoPrisional = (oldValue: string, newValue: string) => {
-    const updated = situacoesPrisionais.map(item => (item === oldValue ? newValue : item));
-    setSituacoesPrisionais(updated);
-    storageService.setItem('situacoesPrisionais', updated);
   };
 
-   const value: AuthContextType = {
+  const removeSituacaoPrisional = (value: string) => {
+    const updated = entityService.removeSituacaoPrisional(value, situacoesPrisionais);
+    setSituacoesPrisionais(updated);
+  };
+
+  const editSituacaoPrisional = (oldValue: string, newValue: string) => {
+    const updated = entityService.editSituacaoPrisional(oldValue, newValue, situacoesPrisionais);
+    setSituacoesPrisionais(updated);
+  };
+
+  const value: AuthContextType = {
     user,
     login,
     logout,
@@ -694,6 +250,7 @@ if (!isApiMode) {
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
+
 export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {
