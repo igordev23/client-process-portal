@@ -29,16 +29,19 @@ export function ProcessManagement({ onBack }: { onBack: () => void }) {
   const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false);
   const [editUpdate, setEditUpdate] = useState<ProcessUpdate | null>(null);
 
-  // Filtra processos e clientes de forma segura
   const filteredProcesses = processes.filter((process) => {
     if ((process as any).deleted) return false;
-    const client = clients.find((c) => c.id === process.clientId);
+
+    const clientId = (process as any).clientid ?? process.clientId;
+    const client = clients.find((c) => String(c.id) === String(clientId));
+
     const lowerSearch = searchTerm.toLowerCase();
     const matchesSearch =
       process.title.toLowerCase().includes(lowerSearch) ||
       process.processNumber.toLowerCase().includes(lowerSearch) ||
       client?.name.toLowerCase().includes(lowerSearch) ||
       client?.cpf.includes(searchTerm);
+
     const matchesStatus = statusFilter === 'all' || process.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
@@ -88,7 +91,7 @@ export function ProcessManagement({ onBack }: { onBack: () => void }) {
   return (
     <div className="min-h-screen bg-gray-50">
       <ProcessForm
-        key={selectedProcess?.id || 'new'} // força recriação para evitar stale state
+        key={selectedProcess?.id || 'new'}
         isOpen={isAddDialogOpen || isEditDialogOpen}
         onOpenChange={(open) => {
           if (!open) handleCloseForm();
@@ -148,9 +151,15 @@ export function ProcessManagement({ onBack }: { onBack: () => void }) {
             <Card className="py-8 text-center text-gray-500">Nenhum processo encontrado</Card>
           ) : (
             filteredProcesses.map((process) => {
-              const client = clients.find((c) => c.id === process.clientId);
+              const rawClientId = (process as any).clientid ?? process.clientId;
+              const clientFromList = clients.find((c) => String(c.id) === String(rawClientId));
 
-              // Usar sempre client?.name ou '' para evitar erros
+              const client =
+                clientFromList ??
+                ((process as any).clientName
+                  ? { name: (process as any).clientName, cpf: '' }
+                  : undefined);
+
               return (
                 <ProcessCard
                   key={process.id}

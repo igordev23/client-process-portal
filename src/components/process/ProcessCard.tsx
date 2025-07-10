@@ -9,6 +9,7 @@ import { Pencil, Trash2 } from 'lucide-react';
 interface ProcessCardProps {
   process: Process;
   client?: { name: string; cpf: string };
+ 
   onStatusChange: (status: Process['status']) => void;
   onAddUpdate: () => void;
   onEdit: () => void;
@@ -36,7 +37,8 @@ export function ProcessCard({
       default: return 'bg-gray-100 text-gray-800';
     }
   };
-
+console.log('ProcessCard - process recebido:', process);
+  console.log('ProcessCard - client recebido:', client);
   const getStatusText = (status: string) => {
     switch (status) {
       case 'active': return 'Em Andamento';
@@ -45,6 +47,11 @@ export function ProcessCard({
       case 'cancelled': return 'Cancelado';
       default: return status;
     }
+  };
+   const formatDate = (dateStr?: string) => {
+    if (!dateStr) return '—';
+    const d = new Date(dateStr);
+    return isNaN(d.getTime()) ? '—' : d.toLocaleDateString('pt-BR');
   };
 
   return (
@@ -60,11 +67,11 @@ export function ProcessCard({
             </div>
 
             <div className="space-y-2 text-sm text-gray-600">
-              <p><strong>Processo:</strong> {process.processNumber}</p>
-              <p><strong>Cliente:</strong> {client?.name} ({client?.cpf})</p>
+            <p><strong>Processo:</strong> {process.processnumber || '—'}</p>
+<p><strong>Cliente:</strong> {client ? `${client.name} (${client.cpf || '—'})` : '—'}</p>
               <p><strong>Advogado:</strong> {process.lawyer}</p>
-              <p><strong>Início:</strong> {new Date(process.startDate).toLocaleDateString('pt-BR')}</p>
-              <p><strong>Última Atualização:</strong> {new Date(process.lastUpdate).toLocaleDateString('pt-BR')}</p>
+               <p><strong>Início:</strong> {formatDate(process.startdate)}</p>
+              <p><strong>Última Atualização:</strong> {formatDate(process.lastupdate)}</p>
               <p><strong>Situação Prisional:</strong> {process.situacaoPrisional || '—'}</p>
               <p><strong>Comarca / Vara:</strong> {process.comarcaVara || '—'}</p>
               <p><strong>Tipo de Crime:</strong> {process.tipoCrime || '—'}</p>

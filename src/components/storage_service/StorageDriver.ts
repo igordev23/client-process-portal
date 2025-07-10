@@ -6,4 +6,6 @@ export interface StorageDriver {
   createItem?<T>(collection: string, item: T): Promise<T>;
   updateItem?<T>(collection: string, id: string, item: T): Promise<T>;
   deleteItem?(collection: string, id: string): Promise<void>;
+    getUserByEmailAndPassword?(email: string, password: string): Promise<any>; // 🔥 adicionado
+
 }

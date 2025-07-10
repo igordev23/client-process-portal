@@ -2,6 +2,8 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { toast } from '@/hooks/use-toast';
 import { storageService } from '@/components/storage_service/storageService'; // ajuste o caminho conforme sua estrutura
 import { localStorageDriver } from '@/components/storage_service/localStorageDriver';
+import { toCamelCase } from '@/components/ui/caseConverter';
+
 
 export type UserRole = 'admin' | 'employee' | 'client';
 export interface User {
@@ -211,24 +213,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [situacoesPrisionais, setSituacoesPrisionais] = useState<string[]>([]);
   const isApiMode = import.meta.env.VITE_STORAGE_MODE === 'api';
 
-  useEffect(() => {
+ useEffect(() => {
   async function loadData() {
-const storedUser = isApiMode
-  ? null // no modo API, não tenta carregar currentUser do servidor
-  : await localStorageDriver.getItem<User | null>('currentUser', null);
-    const storedClients = await storageService.getItem<Client[]>('clients', initialClients);
-    const storedProcesses = await storageService.getItem<Process[]>('processes', initialProcesses);
-    const storedUsers = await storageService.getItem<User[]>('user', initialUsers); // ✅ corrigido
-    const storedTipoCrimes = await storageService.getItem<string[]>('tiposCrime', []); // ✅ corrigido
-    const storedComarcasVaras = await storageService.getItem<string[]>('comarcasVaras', []); // já estava certo
-    const storedSituacoesPrisionais = await storageService.getItem<string[]>('situacoesPrisionais', []); // já estava certo
+    const storedUser = isApiMode
+      ? null // no modo API, não tenta carregar currentUser localmente
+      : await localStorageDriver.getItem<User | null>('currentUser', null);
 
-    // Logs para inspeção dos dados carregados
-  console.log('loaded user:', storedUser);
-  console.log('loaded clients:', storedClients);
-  storedClients.forEach((c, i) => console.log(`Client ${i}:`, c));
-  console.log('loaded users:', storedUsers);
-  storedUsers.forEach((u, i) => console.log(`User ${i}:`, u));
+    // Pega os dados originais do storage (podem estar em snake_case)
+    const rawClients = await storageService.getItem<any[]>('clients', initialClients);
+    const rawProcesses = await storageService.getItem<any[]>('processes', initialProcesses);
+    const rawUsers = await storageService.getItem<any[]>('user', initialUsers);
+    const storedTipoCrimes = await storageService.getItem<string[]>('tiposCrime', []);
+    const storedComarcasVaras = await storageService.getItem<string[]>('comarcasVaras', []);
+    const storedSituacoesPrisionais = await storageService.getItem<string[]>('situacoesPrisionais', []);
+
+    // Converte para camelCase para uso interno no React
+    const storedClients = toCamelCase(rawClients);
+    const storedProcesses = toCamelCase(rawProcesses);
+    const storedUsers = toCamelCase(rawUsers);
+
+    // Logs para inspeção dos dados carregados já convertidos
+    console.log('loaded processes:', storedProcesses);
+    storedProcesses.forEach((p, i) => console.log(`Processo ${i}:`, p));
+    console.log('loaded user:', storedUser);
+    console.log('loaded clients:', storedClients);
+    storedClients.forEach((c, i) => console.log(`Client ${i}:`, c));
+    console.log('loaded users:', storedUsers);
+    storedUsers.forEach((u, i) => console.log(`User ${i}:`, u));
 
     setUser(storedUser);
     setClients(storedClients);
@@ -237,12 +248,11 @@ const storedUser = isApiMode
     setTipoCrimes(storedTipoCrimes);
     setComarcasVaras(storedComarcasVaras);
     setSituacoesPrisionais(storedSituacoesPrisionais);
-    
   }
 
   loadData();
-  
 }, []);
+
 
 function toSnakeCase(obj: any) {
   const newObj: any = {};

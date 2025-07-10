@@ -16,12 +16,17 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
+interface Option {
+  id: number;
+  name: string;
+}
+
 interface Props {
   label: string;
-  value: string;
-  onChange: (value: string) => void;
-  options: (string | { name: string })[];
-  onAdd: (newValue: string) => void;
+  value: number;
+  onChange: (id: number) => void;
+  options: Option[];
+  onAdd: (newName: string) => void;
 }
 
 export function SelectWithAdd({
@@ -35,29 +40,26 @@ export function SelectWithAdd({
   const [newOption, setNewOption] = useState("");
   const [search, setSearch] = useState("");
 
-  // Extrai o texto de cada opção
-  const getLabel = (option: string | { name: string }) =>
-    typeof option === "string" ? option : option.name;
-
-  // Lista de strings únicas para o Select
-  const normalizedOptions = useMemo(() => {
-    const labels = options.map(getLabel);
-    return [...new Set(labels)];
-  }, [options]);
-
-  // Filtra com base no texto
   const filteredOptions = useMemo(() => {
-    if (!search.trim()) return normalizedOptions;
-    return normalizedOptions.filter((opt) =>
-      opt.toLowerCase().includes(search.trim().toLowerCase())
+    if (!search.trim()) return options;
+    return options.filter((opt) =>
+      opt.name.toLowerCase().includes(search.trim().toLowerCase())
     );
-  }, [normalizedOptions, search]);
+  }, [options, search]);
+
+  const selectedLabel = options.find(
+    (opt) => String(opt.id) === String(value)
+  )?.name;
 
   const handleAdd = () => {
     const trimmed = newOption.trim();
-    if (trimmed && !normalizedOptions.includes(trimmed)) {
+    if (
+      trimmed &&
+      !options.some(
+        (opt) => opt.name.toLowerCase() === trimmed.toLowerCase()
+      )
+    ) {
       onAdd(trimmed);
-      onChange(trimmed);
       setNewOption("");
       setDialogOpen(false);
     }
@@ -67,9 +69,11 @@ export function SelectWithAdd({
     <div className="space-y-2">
       <label className="block font-medium">{label}</label>
       <div className="flex gap-2">
-        <Select value={value} onValueChange={onChange}>
+        <Select value={value.toString()} onValueChange={(val) => onChange(Number(val))}>
           <SelectTrigger className="flex-1">
-            <SelectValue placeholder={`Selecione ${label.toLowerCase()}`} />
+            <SelectValue placeholder={`Selecione ${label.toLowerCase()}`}>
+              {selectedLabel || `Selecione ${label.toLowerCase()}`}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             <div className="p-2">
@@ -82,10 +86,11 @@ export function SelectWithAdd({
             </div>
             <div className="max-h-60 overflow-y-auto">
               {filteredOptions.length > 0 ? (
-                filteredOptions.map((option, i) => (
-                  <SelectItem key={i} value={option}>
-                    {option}
-                  </SelectItem>
+                filteredOptions.map((option) => (
+                 <SelectItem key={option.id} value={option.id.toString()}>
+              {option.name}
+            </SelectItem>
+
                 ))
               ) : (
                 <div className="p-2 text-sm text-muted-foreground">
@@ -129,7 +134,10 @@ export function SelectWithAdd({
                   onClick={handleAdd}
                   disabled={
                     !newOption.trim() ||
-                    normalizedOptions.includes(newOption.trim())
+                    options.some(
+                      (opt) =>
+                        opt.name.toLowerCase() === newOption.trim().toLowerCase()
+                    )
                   }
                   className="legal-gradient text-white"
                 >
