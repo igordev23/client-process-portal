@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { useAuth, Process, ProcessUpdate } from '@/contexts/AuthContext';
@@ -15,7 +14,6 @@ export function ProcessManagement({ onBack }: { onBack: () => void }) {
     clients,
     addProcess,
     updateProcess,
-    deleteProcess,
     addProcessUpdate,
     updateProcessUpdate,
     deleteProcessUpdate,
@@ -72,8 +70,8 @@ export function ProcessManagement({ onBack }: { onBack: () => void }) {
     setSelectedProcess(null);
   };
 
-  const handleDeleteProcess = (id: string) => {
-    deleteProcess(id);
+  const deleteProcess = (id: string) => {
+    updateProcess(id, { ...(processes.find(p => p.id === id) || {}), deleted: true } as Partial<Process>);
     toast({
       title: 'Processo excluído',
       description: 'O processo foi removido com sucesso.',
@@ -170,7 +168,7 @@ export function ProcessManagement({ onBack }: { onBack: () => void }) {
                   onStatusChange={(newStatus) => updateProcessStatus(process.id, newStatus)}
                   onAddUpdate={() => openUpdateDialog(process)}
                   onEdit={() => openEditDialog(process)}
-                  onDelete={() => handleDeleteProcess(process.id)}
+                  onDelete={() => deleteProcess(process.id)}
                   onEditUpdate={(update) => {
                     setSelectedProcess(process);
                     setEditUpdate(update);
