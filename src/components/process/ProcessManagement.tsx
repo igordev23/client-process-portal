@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
+// ✅ CORRETO — só importa useAuth, que já traz deleteProcess dentro
 import { useAuth, Process, ProcessUpdate } from '@/contexts/AuthContext';
 import { ProcessForm } from './ProcessForm';
 import { ProcessCard } from './ProcessCard';
@@ -7,6 +8,7 @@ import { ProcessUpdateDialog } from './ProcessUpdateDialog';
 import { ProcessFilter } from './ProcessFilter';
 import { toast } from '@/hooks/use-toast';
 import { exportProcessesToExcel } from '@/lib/export/processExporter';
+
 
 export function ProcessManagement({ onBack }: { onBack: () => void }) {
   const {
@@ -17,6 +19,7 @@ export function ProcessManagement({ onBack }: { onBack: () => void }) {
     addProcessUpdate,
     updateProcessUpdate,
     deleteProcessUpdate,
+    deleteProcess,
     user,
   } = useAuth();
 
@@ -70,13 +73,16 @@ export function ProcessManagement({ onBack }: { onBack: () => void }) {
     setSelectedProcess(null);
   };
 
-  const deleteProcess = (id: string) => {
-    updateProcess(id, { ...(processes.find(p => p.id === id) || {}), deleted: true } as Partial<Process>);
+ const handleDeleteProcess = (id: string) => {
+  if (confirm('Tem certeza que deseja excluir este processo?')) {
+    deleteProcess(id); // ✅ Aqui está certo agora
     toast({
       title: 'Processo excluído',
       description: 'O processo foi removido com sucesso.',
     });
-  };
+  }
+};
+
 
   const updateProcessStatus = (id: string, newStatus: Process['status']) => {
     updateProcess(id, { status: newStatus });
@@ -168,7 +174,7 @@ export function ProcessManagement({ onBack }: { onBack: () => void }) {
                   onStatusChange={(newStatus) => updateProcessStatus(process.id, newStatus)}
                   onAddUpdate={() => openUpdateDialog(process)}
                   onEdit={() => openEditDialog(process)}
-                  onDelete={() => deleteProcess(process.id)}
+                  onDelete={() => handleDeleteProcess(process.id)}
                   onEditUpdate={(update) => {
                     setSelectedProcess(process);
                     setEditUpdate(update);

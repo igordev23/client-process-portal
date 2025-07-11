@@ -13,6 +13,8 @@ import { useEntities } from '@/hooks/useEntities';
 
 export type { Process };
 export type { ProcessUpdate } from '@/types/auth.types';
+// Export deleteProcess from the context value
+
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
