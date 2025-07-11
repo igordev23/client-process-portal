@@ -31,6 +31,23 @@ export function ProcessManagement({ onBack }: { onBack: () => void }) {
   const [selectedProcess, setSelectedProcess] = useState<Process | null>(null);
   const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false);
   const [editUpdate, setEditUpdate] = useState<ProcessUpdate | null>(null);
+  function normalizeProcessKeys(raw: any): Process {
+  return {
+    id: raw.id,
+    clientId: String(raw.clientid ?? raw.clientId ?? ''),
+    processNumber: raw.processnumber ?? raw.processNumber ?? '',
+    title: raw.title ?? '',
+    status: raw.status ?? 'pending',
+    startDate: raw.startdate ?? raw.startDate ?? '',
+    lastUpdate: raw.lastupdate ?? raw.lastUpdate ?? '',
+    description: raw.description ?? '',
+    lawyer: raw.lawyer ?? '',
+    updates: raw.updates ?? [],
+    situacaoPrisionalId: Number(raw.situacaoprisionalid ?? raw.situacaoPrisionalId ?? 0),
+    comarcaVaraId: Number(raw.comarcavaraid ?? raw.comarcaVaraId ?? 0),
+    tipoCrimeId: Number(raw.tipocrimeid ?? raw.tipoCrimeId ?? 0),
+  };
+}
 
   const filteredProcesses = processes.filter((process) => {
     if ((process as any).deleted) return false;
@@ -49,10 +66,13 @@ export function ProcessManagement({ onBack }: { onBack: () => void }) {
     return matchesSearch && matchesStatus;
   });
 
-  const openEditDialog = (process: Process) => {
-    setSelectedProcess(process);
-    setIsEditDialogOpen(true);
-  };
+  const openEditDialog = (process: any) => {
+  console.log('ProcessManagement - Abrindo diálogo de edição para o processo: ', process);
+  const normalizedProcess = normalizeProcessKeys(process);
+  setSelectedProcess(normalizedProcess);
+  setIsEditDialogOpen(true);
+};
+
 
   const openUpdateDialog = (process: Process) => {
     setSelectedProcess(process);
@@ -97,16 +117,17 @@ export function ProcessManagement({ onBack }: { onBack: () => void }) {
   return (
     <div className="min-h-screen bg-gray-50">
       <ProcessForm
-        key={selectedProcess?.id || 'new'}
-        isOpen={isAddDialogOpen || isEditDialogOpen}
-        onOpenChange={(open) => {
-          if (!open) handleCloseForm();
-        }}
-        onSubmit={handleFormSubmit}
-        user={user}
-        clients={clients}
-        initialData={isEditDialogOpen ? selectedProcess : undefined}
-      />
+  key={isEditDialogOpen ? selectedProcess?.id : 'new'}
+  isOpen={isAddDialogOpen || isEditDialogOpen}
+  onOpenChange={(open) => {
+    if (!open) handleCloseForm();
+  }}
+  onSubmit={handleFormSubmit}
+  user={user}
+  clients={clients}
+  initialData={isEditDialogOpen ? selectedProcess : undefined}
+/>
+
 
       <ProcessUpdateDialog
         isOpen={isUpdateDialogOpen}
