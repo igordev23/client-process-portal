@@ -2,6 +2,7 @@
 import React, { createContext, useContext, ReactNode } from 'react';
 import { toast } from '@/hooks/use-toast';
 import { User, Client, Process, ProcessUpdate } from '@/types/auth';
+export type { Process, ProcessUpdate };
 import { useAuthData } from '@/hooks/useAuthData';
 import { authService } from '@/services/authService';
 import { clientService } from '@/services/clientService';
