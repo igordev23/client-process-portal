@@ -79,8 +79,8 @@ export function LoginForm() {
             <div className="mt-6 p-4 bg-blue-50 rounded-lg">
               <p className="text-sm text-gray-600 mb-2 font-medium">Credenciais de teste:</p>
               <div className="text-xs text-gray-500 space-y-1">
-                <p><strong>Admin:</strong> maria@escritorio.com / 123456</p>
-                <p><strong>Funcionário:</strong> joao@escritorio.com / 123456</p>
+                <p><strong>Admin:</strong> maria@escritorio.com / admin123</p>
+                <p><strong>Funcionário:</strong> joao@escritorio.com / func123</p>
               </div>
             </div>
           </CardContent>
