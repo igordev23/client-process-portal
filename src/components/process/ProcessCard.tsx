@@ -72,9 +72,9 @@ console.log('ProcessCard - process recebido:', process);
               <p><strong>Advogado:</strong> {process.lawyer}</p>
                <p><strong>Início:</strong> {formatDate(process.startdate)}</p>
               <p><strong>Última Atualização:</strong> {formatDate(process.lastupdate)}</p>
-              <p><strong>Situação Prisional:</strong> {process.situacaoPrisional || '—'}</p>
-              <p><strong>Comarca / Vara:</strong> {process.comarcaVara || '—'}</p>
-              <p><strong>Tipo de Crime:</strong> {process.tipoCrime || '—'}</p>
+             <p><strong>Situação Prisional:</strong> {process.situacaoPrisional || process.situacao_prisional || '—'}</p>
+            <p><strong>Comarca / Vara:</strong> {process.comarcaVara || process.comarca_vara || '—'}</p>
+            <p><strong>Tipo de Crime:</strong> {process.tipoCrime || process.tipo_crime || '—'}</p>
             </div>
             
             <div className="mt-3">
