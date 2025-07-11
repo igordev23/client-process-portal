@@ -1,6 +1,5 @@
-
 import { useState } from 'react';
-import { storageService } from '@/components/storage_service/storageService';
+import { storageService, storageMode } from '@/components/storage_service/storageService';
 
 export function useEntities() {
   const [tipoCrimes, setTipoCrimes] = useState<string[]>([]);
@@ -8,11 +7,17 @@ export function useEntities() {
   const [situacoesPrisionais, setSituacoesPrisionais] = useState<string[]>([]);
 
   // Tipo Crimes
-  const addTipoCrime = (value: string) => {
+  const addTipoCrime = async (value: string) => {
     if (!tipoCrimes.includes(value)) {
       const updated = [...tipoCrimes, value];
       setTipoCrimes(updated);
-      storageService.setItem('tipoCrimes', updated);
+
+      if (storageMode === 'api') {
+await storageService.createItem('tiposCrime', { name: value });
+
+      } else {
+        storageService.setItem('tipoCrimes', updated);
+      }
     }
   };
 
@@ -29,11 +34,16 @@ export function useEntities() {
   };
 
   // Comarcas Varas
-  const addComarcaVara = (value: string) => {
+  const addComarcaVara = async (value: string) => {
     if (!comarcasVaras.includes(value)) {
       const updated = [...comarcasVaras, value];
       setComarcasVaras(updated);
-      storageService.setItem('comarcasVaras', updated);
+
+      if (storageMode === 'api') {
+        await storageService.createItem('comarcasVaras', { name: value });
+      } else {
+        storageService.setItem('comarcasVaras', updated);
+      }
     }
   };
 
@@ -50,11 +60,16 @@ export function useEntities() {
   };
 
   // Situações Prisionais
-  const addSituacaoPrisional = (value: string) => {
+  const addSituacaoPrisional = async (value: string) => {
     if (!situacoesPrisionais.includes(value)) {
       const updated = [...situacoesPrisionais, value];
       setSituacoesPrisionais(updated);
-      storageService.setItem('situacoesPrisionais', updated);
+
+      if (storageMode === 'api') {
+        await storageService.createItem('situacoesPrisionais', { name: value });
+      } else {
+        storageService.setItem('situacoesPrisionais', updated);
+      }
     }
   };
 
