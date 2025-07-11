@@ -3,13 +3,10 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { storageService } from '@/components/storage_service/storageService';
 import { localStorageDriver } from '@/components/storage_service/localStorageDriver';
 import { toCamelCase } from '@/components/ui/caseConverter';
-import { AuthContextType, User, Process } from '@/types/auth.types';
+import { AuthContextType, User } from '@/types/auth.types';
 import { initialUsers, initialClients, initialProcesses } from '@/data/initialData';
 import { useAuthLogic } from '@/hooks/useAuth';
 import { useClients } from '@/hooks/useClients';
-export type { Process };
-export type { ProcessUpdate } from '@/types/auth.types';
-
 import { useProcesses } from '@/hooks/useProcesses';
 import { useEntities } from '@/hooks/useEntities';
 

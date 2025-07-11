@@ -1,47 +1,81 @@
-
+// src/components/ClientManagement.tsx
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
+import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useAuth, Client } from '@/contexts/AuthContext';
-import { ClientDialogForm } from '@/components/ui/ClientDialogForm';
+import { toast } from '@/hooks/use-toast';
 
 interface ClientManagementProps {
   onBack: () => void;
 }
 
 export function ClientManagement({ onBack }: ClientManagementProps) {
-  const { clients, addClient, updateClient, user } = useAuth();
+  const { clients, addClient, updateClient, deleteClient, user, users } = useAuth();
+  // Log para conferir os dados dos clients no momento da renderização
+  console.log('Clients dentro do ClientManagement:', clients);
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const [editingClient, setEditingClient] = useState<Client | null>(null);
+
+  const [formData, setFormData] = useState({
+    name: '',
+    cpf: '',
+    email: '',
+    phone: '',
+  });
 
   const filteredClients = clients.filter(client =>
-    client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    client.cpf.includes(searchTerm) ||
-    client.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    client.phone.includes(searchTerm)
+    (client.name?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false) ||
+    (client.cpf?.includes(searchTerm) ?? false) ||
+    (client.email?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false)
   );
 
-  const handleAddClient = (clientData: Omit<Client, 'id'>) => {
-    addClient(clientData);
-    setIsAddDialogOpen(false);
+
+  const resetForm = () => {
+    setFormData({ name: '', cpf: '', email: '', phone: '' });
+    setEditingClient(null);
   };
 
-  const handleEditClient = (clientData: Omit<Client, 'id'>) => {
-    if (selectedClient) {
-      updateClient(selectedClient.id, clientData);
-      setIsEditDialogOpen(false);
-      setSelectedClient(null);
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (editingClient) {
+      updateClient(editingClient.id, formData);
+      setEditingClient(null);
+    } else {
+      addClient({ ...formData });
+
+      setIsAddDialogOpen(false);
+    }
+
+    resetForm();
+  };
+
+  const handleEdit = (client: Client) => {
+    setEditingClient(client);
+    setFormData({
+      name: client.name,
+      cpf: client.cpf,
+      email: client.email,
+      phone: client.phone,
+    });
+  };
+
+  const handleDelete = (clientId: string) => {
+    if (window.confirm('Tem certeza que deseja excluir este cliente?')) {
+      deleteClient(clientId);
     }
   };
 
-  const openEditDialog = (client: Client) => {
-    setSelectedClient(client);
-    setIsEditDialogOpen(true);
+  const formatCPF = (cpf: string) => {
+    return cpf.replace(/^(\d{3})(\d{3})(\d{3})(\d{2})$/, '$1.$2.$3-$4');
+  };
+
+  const formatPhone = (phone: string) => {
+    return phone.replace(/^(\d{2})(\d{5})(\d{4})$/, '($1) $2-$3');
   };
 
   return (
@@ -58,7 +92,7 @@ export function ClientManagement({ onBack }: ClientManagementProps) {
               </Button>
               <h1 className="text-xl font-semibold text-gray-900">Gestão de Clientes</h1>
             </div>
-            
+
             <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
               <DialogTrigger asChild>
                 <Button className="legal-gradient text-white">
@@ -68,18 +102,70 @@ export function ClientManagement({ onBack }: ClientManagementProps) {
                   Novo Cliente
                 </Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
+              <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
                   <DialogTitle>Cadastrar Novo Cliente</DialogTitle>
                   <DialogDescription>
-                    Preencha os dados do cliente
+                    Preencha os dados do cliente. Uma chave de acesso será gerada automaticamente.
                   </DialogDescription>
                 </DialogHeader>
-                <ClientDialogForm
-                  onSubmit={handleAddClient}
-                  onCancel={() => setIsAddDialogOpen(false)}
-                  user={user}
-                />
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Nome Completo</Label>
+                    <Input
+                      id="name"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="cpf">CPF</Label>
+                    <Input
+                      id="cpf"
+                      placeholder="000.000.000-00"
+                      value={formData.cpf}
+                      onChange={(e) => setFormData({ ...formData, cpf: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">Telefone</Label>
+                    <Input
+                      id="phone"
+                      placeholder="(11) 99999-9999"
+                      value={formData.phone}
+                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div className="flex gap-2 pt-4">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        setIsAddDialogOpen(false);
+                        resetForm();
+                      }}
+                      className="flex-1"
+                    >
+                      Cancelar
+                    </Button>
+                    <Button type="submit" className="flex-1 legal-gradient text-white">
+                      Cadastrar
+                    </Button>
+                  </div>
+                </form>
               </DialogContent>
             </Dialog>
           </div>
@@ -91,9 +177,9 @@ export function ClientManagement({ onBack }: ClientManagementProps) {
         {/* Search */}
         <Card className="mb-6">
           <CardHeader>
-            <CardTitle>Buscar Clientes</CardTitle>
+            <CardTitle>Filtrar Clientes</CardTitle>
             <CardDescription>
-              Pesquise por nome, CPF, email ou telefone
+              Busque por nome, CPF ou email
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -101,7 +187,7 @@ export function ClientManagement({ onBack }: ClientManagementProps) {
               placeholder="Digite para pesquisar..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full"
+              className="max-w-md"
             />
           </CardContent>
         </Card>
@@ -118,54 +204,47 @@ export function ClientManagement({ onBack }: ClientManagementProps) {
             filteredClients.map((client) => (
               <Card key={client.id}>
                 <CardContent className="p-6">
-                  <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
+                  <div className="flex flex-col md:flex-row md:items-center justify-between">
                     <div className="flex-1">
-                      <div className="flex items-start justify-between mb-2">
-                        <h3 className="font-semibold text-lg">{client.name}</h3>
-                        <Badge variant="secondary" className="ml-4">
-                          {client.status || 'Ativo'}
-                        </Badge>
-                      </div>
-                      
-                      <div className="space-y-2 text-sm text-gray-600">
-                        <p><strong>CPF:</strong> {client.cpf}</p>
+                      <h3 className="font-semibold text-lg">{client.name}</h3>
+                      <div className="mt-2 space-y-1 text-sm text-gray-600">
+                        <p><strong>CPF:</strong> {formatCPF(client.cpf)}</p>
                         <p><strong>Email:</strong> {client.email}</p>
-                        <p><strong>Telefone:</strong> {client.phone}</p>
-                        <p><strong>Endereço:</strong> {client.address}</p>
-                        {client.birthDate && (
-                          <p><strong>Data de Nascimento:</strong> {new Date(client.birthDate).toLocaleDateString('pt-BR')}</p>
-                        )}
-                        {client.rg && <p><strong>RG:</strong> {client.rg}</p>}
-                        {client.profession && <p><strong>Profissão:</strong> {client.profession}</p>}
-                        {client.maritalStatus && <p><strong>Estado Civil:</strong> {client.maritalStatus}</p>}
-                        {client.nationality && <p><strong>Nacionalidade:</strong> {client.nationality}</p>}
-                      </div>
-                      
-                      {client.notes && (
-                        <div className="mt-3">
-                          <p className="text-sm"><strong>Observações:</strong></p>
-                          <p className="text-sm text-gray-600 mt-1">{client.notes}</p>
-                        </div>
-                      )}
-
-                      <div className="mt-4 text-xs text-gray-500 space-y-1">
-                        <p>
-                          <strong>Cadastrado por:</strong> {client.createdBy || 'Sistema'} | 
-                          <strong> Em:</strong> {client.createdAt ? new Date(client.createdAt).toLocaleDateString('pt-BR') : '—'}
+                        <p><strong>Telefone:</strong> {formatPhone(client.phone)}</p>
+                        <p><strong>Chave de Acesso:</strong>
+                          <span className="ml-2 font-mono bg-gray-100 px-2 py-1 rounded text-xs">
+                            {client.accesskey}
+                          </span>
                         </p>
-                        <p><strong>Chave de Acesso:</strong> {client.accessKey || '—'}</p>
+                        <p><strong>Cadastrado por:</strong> {
+                          users.find(u => Number(u.id) === Number(client.createdby))?.name || 'Desconhecido'
+                        }</p>
+
+
                       </div>
+                      <p className="text-xs text-gray-400 mt-2">
+                        Cadastrado em: {client.createdat ? new Date(client.createdat).toLocaleDateString('pt-BR') : 'Data inválida'}
+                      </p>
+
                     </div>
-                    
-                    <div className="flex flex-col space-y-2 lg:ml-4">
+
+                    <div className="flex space-x-2 mt-4 md:mt-0">
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => openEditDialog(client)}
-                        className="w-full lg:w-48"
+                        onClick={() => handleEdit(client)}
                       >
-                        Editar Cliente
+                        Editar
                       </Button>
+                      {user?.role === 'admin' && (
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => handleDelete(client.id)}
+                        >
+                          Excluir
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </CardContent>
@@ -173,30 +252,76 @@ export function ClientManagement({ onBack }: ClientManagementProps) {
             ))
           )}
         </div>
-      </main>
 
-      {/* Edit Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Editar Cliente</DialogTitle>
-            <DialogDescription>
-              Modifique os dados do cliente
-            </DialogDescription>
-          </DialogHeader>
-          {selectedClient && (
-            <ClientDialogForm
-              onSubmit={handleEditClient}
-              onCancel={() => {
-                setIsEditDialogOpen(false);
-                setSelectedClient(null);
-              }}
-              user={user}
-              initialData={selectedClient}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
+        {/* Edit Dialog */}
+        {editingClient && (
+          <Dialog open={!!editingClient} onOpenChange={() => setEditingClient(null)}>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>Editar Cliente</DialogTitle>
+                <DialogDescription>
+                  Atualize os dados do cliente
+                </DialogDescription>
+              </DialogHeader>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-name">Nome Completo</Label>
+                  <Input
+                    id="edit-name"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-cpf">CPF</Label>
+                  <Input
+                    id="edit-cpf"
+                    value={formData.cpf}
+                    onChange={(e) => setFormData({ ...formData, cpf: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-email">Email</Label>
+                  <Input
+                    id="edit-email"
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-phone">Telefone</Label>
+                  <Input
+                    id="edit-phone"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className="flex gap-2 pt-4">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      setEditingClient(null);
+                      resetForm();
+                    }}
+                    className="flex-1"
+                  >
+                    Cancelar
+                  </Button>
+                  <Button type="submit" className="flex-1 legal-gradient text-white">
+                    Salvar
+                  </Button>
+                </div>
+              </form>
+            </DialogContent>
+          </Dialog>
+        )}
+      </main>
     </div>
   );
 }
