@@ -3,13 +3,16 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { storageService } from '@/components/storage_service/storageService';
 import { localStorageDriver } from '@/components/storage_service/localStorageDriver';
 import { toCamelCase } from '@/components/ui/caseConverter';
-import { AuthContextType, User } from '@/types/auth.types';
+import { AuthContextType, User, Process } from '@/types/auth.types';
+
 import { initialUsers, initialClients, initialProcesses } from '@/data/initialData';
 import { useAuthLogic } from '@/hooks/useAuth';
 import { useClients } from '@/hooks/useClients';
 import { useProcesses } from '@/hooks/useProcesses';
 import { useEntities } from '@/hooks/useEntities';
 
+export type { Process };
+export type { ProcessUpdate } from '@/types/auth.types';
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
