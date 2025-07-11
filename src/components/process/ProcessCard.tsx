@@ -9,7 +9,6 @@ import { Pencil, Trash2 } from 'lucide-react';
 interface ProcessCardProps {
   process: Process;
   client?: { name: string; cpf: string };
- 
   onStatusChange: (status: Process['status']) => void;
   onAddUpdate: () => void;
   onEdit: () => void;
@@ -37,8 +36,7 @@ export function ProcessCard({
       default: return 'bg-gray-100 text-gray-800';
     }
   };
-console.log('ProcessCard - process recebido:', process);
-  console.log('ProcessCard - client recebido:', client);
+
   const getStatusText = (status: string) => {
     switch (status) {
       case 'active': return 'Em Andamento';
@@ -48,10 +46,18 @@ console.log('ProcessCard - process recebido:', process);
       default: return status;
     }
   };
-   const formatDate = (dateStr?: string) => {
+
+  const formatDate = (dateStr?: string) => {
     if (!dateStr) return '—';
     const d = new Date(dateStr);
     return isNaN(d.getTime()) ? '—' : d.toLocaleDateString('pt-BR');
+  };
+
+  // Função para obter o nome da entidade, considerando tanto o nome quanto o ID
+  const getEntityName = (entityValue?: string | number, entityName?: string) => {
+    if (entityName) return entityName;
+    if (!entityValue) return '—';
+    return entityValue.toString();
   };
 
   return (
@@ -67,14 +73,29 @@ console.log('ProcessCard - process recebido:', process);
             </div>
 
             <div className="space-y-2 text-sm text-gray-600">
-            <p><strong>Processo:</strong> {process.processnumber || '—'}</p>
-<p><strong>Cliente:</strong> {client ? `${client.name} (${client.cpf || '—'})` : '—'}</p>
+              <p><strong>Processo:</strong> {process.processNumber || (process as any).processnumber || '—'}</p>
+              <p><strong>Cliente:</strong> {client ? `${client.name} (${client.cpf || '—'})` : '—'}</p>
               <p><strong>Advogado:</strong> {process.lawyer}</p>
-               <p><strong>Início:</strong> {formatDate(process.startdate)}</p>
-              <p><strong>Última Atualização:</strong> {formatDate(process.lastupdate)}</p>
-              <p><strong>Situação Prisional:</strong> {process.situacaoPrisional || '—'}</p>
-              <p><strong>Comarca / Vara:</strong> {process.comarcaVara || '—'}</p>
-              <p><strong>Tipo de Crime:</strong> {process.tipoCrime || '—'}</p>
+              <p><strong>Início:</strong> {formatDate(process.startDate || (process as any).startdate)}</p>
+              <p><strong>Última Atualização:</strong> {formatDate(process.lastUpdate || (process as any).lastupdate)}</p>
+              <p><strong>Situação Prisional:</strong> {
+                getEntityName(
+                  process.situacaoPrisional || (process as any).situacaoprisional,
+                  (process as any).situacaoPrisionalName
+                )
+              }</p>
+              <p><strong>Comarca / Vara:</strong> {
+                getEntityName(
+                  process.comarcaVara || (process as any).comarcavara,
+                  (process as any).comarcaVaraName
+                )
+              }</p>
+              <p><strong>Tipo de Crime:</strong> {
+                getEntityName(
+                  process.tipoCrime || (process as any).tipocrime,
+                  (process as any).tipoCrimeName
+                )
+              }</p>
             </div>
             
             <div className="mt-3">
@@ -82,24 +103,37 @@ console.log('ProcessCard - process recebido:', process);
               <p className="text-sm text-gray-600 mt-1">{process.description}</p>
             </div>
 
-            {process.updates.slice(-3).reverse().map((update) => (
-              <div key={update.id} className="bg-gray-50 p-3 rounded-lg relative mt-2">
-                <div className="flex justify-between items-start mb-1">
-                  <span className="text-xs font-medium text-gray-900">{update.author}</span>
-                  <span className="text-xs text-gray-500">{new Date(update.date).toLocaleDateString('pt-BR')}</span>
-                </div>
-                <p className="text-sm text-gray-700">{update.description}</p>
+            {process.updates && process.updates.length > 0 && (
+              <div className="mt-4">
+                <p className="text-sm font-medium mb-2">Últimas Atualizações:</p>
+                <div className="space-y-2">
+                  {process.updates.slice(-3).reverse().map((update) => (
+                    <div key={update.id} className="bg-gray-50 p-3 rounded-lg relative">
+                      <div className="flex justify-between items-start mb-1">
+                        <span className="text-xs font-medium text-gray-900">{update.author}</span>
+                        <span className="text-xs text-gray-500">{new Date(update.date).toLocaleDateString('pt-BR')}</span>
+                      </div>
+                      <p className="text-sm text-gray-700">{update.description}</p>
 
-                <div className="absolute top-8 right-3 flex gap-1">
-                  <button onClick={() => onEditUpdate?.(update)}>
-                    <Pencil size={16} className="text-gray-500 hover:text-blue-500" />
-                  </button>
-                  <button onClick={() => onDeleteUpdate?.(update)}>
-                    <Trash2 size={16} className="text-gray-500 hover:text-red-500" />
-                  </button>
+                      {(onEditUpdate || onDeleteUpdate) && (
+                        <div className="absolute top-8 right-3 flex gap-1">
+                          {onEditUpdate && (
+                            <button onClick={() => onEditUpdate(update)}>
+                              <Pencil size={16} className="text-gray-500 hover:text-blue-500" />
+                            </button>
+                          )}
+                          {onDeleteUpdate && (
+                            <button onClick={() => onDeleteUpdate(update)}>
+                              <Trash2 size={16} className="text-gray-500 hover:text-red-500" />
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ))}
                 </div>
               </div>
-            ))}
+            )}
           </div>
 
           <div className="flex flex-col space-y-2 lg:ml-4">

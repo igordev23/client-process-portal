@@ -7,6 +7,25 @@ import { storageService } from '@/components/storage_service/storageService';
 export function useProcesses(user: User | null) {
   const [processes, setProcesses] = useState<Process[]>([]);
 
+  // Função para resolver nomes das entidades baseados nos IDs
+  const resolveEntityNames = async (processData: any) => {
+    try {
+      const tipoCrimes = await storageService.getItem<string[]>('tipoCrimes', []);
+      const comarcasVaras = await storageService.getItem<string[]>('comarcasVaras', []);
+      const situacoesPrisionais = await storageService.getItem<string[]>('situacoesPrisionais', []);
+
+      return {
+        ...processData,
+        tipoCrimeName: processData.tipoCrime ? tipoCrimes[parseInt(processData.tipoCrime)] || processData.tipoCrime : undefined,
+        comarcaVaraName: processData.comarcaVara ? comarcasVaras[parseInt(processData.comarcaVara)] || processData.comarcaVara : undefined,
+        situacaoPrisionalName: processData.situacaoPrisional ? situacoesPrisionais[parseInt(processData.situacaoPrisional)] || processData.situacaoPrisional : undefined,
+      };
+    } catch (error) {
+      console.error('Erro ao resolver nomes das entidades:', error);
+      return processData;
+    }
+  };
+
   const addProcess = async (processData: Omit<Process, 'id' | 'updates'>) => {
     if (!user) {
       toast({
@@ -24,13 +43,16 @@ export function useProcesses(user: User | null) {
     };
 
     try {
+      // Resolve os nomes das entidades antes de adicionar
+      const processWithNames = await resolveEntityNames(newProcess);
+
       if (storageService.createItem) {
-        const savedProcess = await storageService.createItem<Process>('processes', newProcess);
+        const savedProcess = await storageService.createItem<Process>('processes', processWithNames);
         const updatedProcesses = [...processes, savedProcess];
         setProcesses(updatedProcesses);
         await storageService.setItem('processes', updatedProcesses);
       } else {
-        const updatedProcesses = [...processes, newProcess];
+        const updatedProcesses = [...processes, processWithNames];
         setProcesses(updatedProcesses);
         await storageService.setItem('processes', updatedProcesses);
       }
@@ -50,8 +72,11 @@ export function useProcesses(user: User | null) {
 
   const updateProcess = async (id: string, updates: Partial<Process>) => {
     try {
+      // Resolve os nomes das entidades se houver mudanças nelas
+      const updatesWithNames = await resolveEntityNames(updates);
+
       const updatedProcesses = processes.map(proc =>
-        proc.id === id ? { ...proc, ...updates, lastUpdate: new Date().toISOString() } : proc
+        proc.id === id ? { ...proc, ...updatesWithNames, lastUpdate: new Date().toISOString() } : proc
       );
 
       if (storageService.updateItem) {
