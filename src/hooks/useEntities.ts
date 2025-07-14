@@ -39,14 +39,20 @@ export function useEntities() {
 
   // Remover
   const removeEntity = async (type: string, id: number, set: any, list: Entity[]) => {
+  if (storageMode === 'api') {
+    // Tenta remover do backend primeiro
+    await storageService.deleteItem(type, id);
+    // Se sucesso, atualiza o estado local
     const updated = list.filter((e) => e.id !== id);
     set(updated);
-    if (storageMode === 'api') {
-      await storageService.deleteItem(type, id);
-    } else {
-      storageService.setItem(type, updated);
-    }
-  };
+  } else {
+    // Modo local: atualiza direto
+    const updated = list.filter((e) => e.id !== id);
+    set(updated);
+    storageService.setItem(type, updated);
+  }
+};
+
 
   // Editar
   const editEntity = async (type: string, id: number, newValue: string, set: any, list: Entity[]) => {

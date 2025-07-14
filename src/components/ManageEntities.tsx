@@ -3,6 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { toast } from '@/hooks/use-toast';
 
 type Entity = { id: number; name: string };
 type EntityType = 'tipoCrime' | 'comarcaVara' | 'situacaoPrisional';
@@ -27,6 +28,9 @@ export function ManageEntities({ onBack }: { onBack: () => void }) {
   const [editId, setEditId] = useState<number | null>(null);
   const [editValue, setEditValue] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  
+  // Estado para modal confirmação exclusão
+  const [idToDelete, setIdToDelete] = useState<number | null>(null);
 
   const getCurrentList = (): Entity[] => {
     switch (activeTab) {
@@ -60,50 +64,80 @@ export function ManageEntities({ onBack }: { onBack: () => void }) {
     const trimmed = editValue.trim();
     if (!trimmed) return;
 
-    switch (activeTab) {
-      case 'tipoCrime':
-        await addTipoCrime(trimmed);
-        break;
-      case 'comarcaVara':
-        await addComarcaVara(trimmed);
-        break;
-      case 'situacaoPrisional':
-        await addSituacaoPrisional(trimmed);
-        break;
+    try {
+      switch (activeTab) {
+        case 'tipoCrime':
+          await addTipoCrime(trimmed);
+          break;
+        case 'comarcaVara':
+          await addComarcaVara(trimmed);
+          break;
+        case 'situacaoPrisional':
+          await addSituacaoPrisional(trimmed);
+          break;
+      }
+      toast({ title: 'Adicionado com sucesso!', variant: 'success' });
+      setEditValue('');
+    } catch {
+      toast({
+        title: 'Erro ao adicionar',
+        description: 'Não foi possível adicionar o item.',
+        variant: 'destructive',
+      });
     }
-    setEditValue('');
   };
 
   const handleSave = async () => {
     if (editId === null || !editValue.trim()) return;
 
-    switch (activeTab) {
-      case 'tipoCrime':
-        await editTipoCrime(editId, editValue.trim());
-        break;
-      case 'comarcaVara':
-        await editComarcaVara(editId, editValue.trim());
-        break;
-      case 'situacaoPrisional':
-        await editSituacaoPrisional(editId, editValue.trim());
-        break;
+    try {
+      switch (activeTab) {
+        case 'tipoCrime':
+          await editTipoCrime(editId, editValue.trim());
+          break;
+        case 'comarcaVara':
+          await editComarcaVara(editId, editValue.trim());
+          break;
+        case 'situacaoPrisional':
+          await editSituacaoPrisional(editId, editValue.trim());
+          break;
+      }
+      toast({ title: 'Editado com sucesso!', variant: 'success' });
+      setEditId(null);
+      setEditValue('');
+    } catch {
+      toast({
+        title: 'Erro ao editar',
+        description: 'Não foi possível salvar as alterações.',
+        variant: 'destructive',
+      });
     }
-
-    setEditId(null);
-    setEditValue('');
   };
 
-  const handleRemove = async (id: number) => {
-    switch (activeTab) {
-      case 'tipoCrime':
-        await removeTipoCrime(id);
-        break;
-      case 'comarcaVara':
-        await removeComarcaVara(id);
-        break;
-      case 'situacaoPrisional':
-        await removeSituacaoPrisional(id);
-        break;
+  const handleRemoveConfirmed = async () => {
+    if (idToDelete === null) return;
+    try {
+      switch (activeTab) {
+        case 'tipoCrime':
+          await removeTipoCrime(idToDelete);
+          break;
+        case 'comarcaVara':
+          await removeComarcaVara(idToDelete);
+          break;
+        case 'situacaoPrisional':
+          await removeSituacaoPrisional(idToDelete);
+          break;
+      }
+      toast({ title: 'Removido com sucesso!', variant: 'success' });
+      setIdToDelete(null);
+    } catch {
+      toast({
+        title: 'Não foi possível remover',
+        description:
+          'Este item está vinculado a um ou mais processos. Atualize ou remova os processos antes de excluir.',
+        variant: 'destructive',
+      });
+      setIdToDelete(null);
     }
   };
 
@@ -126,6 +160,7 @@ export function ManageEntities({ onBack }: { onBack: () => void }) {
               setActiveTab(tab);
               setEditId(null);
               setSearchTerm('');
+              setEditValue('');
             }}
           >
             {tab === 'tipoCrime'
@@ -149,25 +184,20 @@ export function ManageEntities({ onBack }: { onBack: () => void }) {
         </CardHeader>
 
         <CardContent className="space-y-2">
-          {/* Novo item */}
-          <div className="flex items-center gap-2 mb-2">
-            <Input
-              placeholder="Novo item..."
-              value={editValue}
-              onChange={(e) => setEditValue(e.target.value)}
-              className="flex-1"
-            />
-            <Button onClick={editId === null ? handleAdd : handleSave}>
-              {editId === null ? 'Adicionar' : 'Salvar'}
-            </Button>
-            {editId !== null && (
-              <Button variant="outline" onClick={() => setEditId(null)}>
-                Cancelar
-              </Button>
-            )}
-          </div>
+          {/* Campo de novo item - só aparece se não estiver editando */}
+          {editId === null && (
+            <div className="flex items-center gap-2 mb-2">
+              <Input
+                placeholder="Novo item..."
+                value={editValue}
+                onChange={(e) => setEditValue(e.target.value)}
+                className="flex-1"
+              />
+              <Button onClick={handleAdd}>Adicionar</Button>
+            </div>
+          )}
 
-          {/* Lista atual */}
+          {/* Lista de itens */}
           {filteredList.length > 0 ? (
             filteredList.map((item) => (
               <div key={item.id} className="flex items-center gap-2">
@@ -186,16 +216,19 @@ export function ManageEntities({ onBack }: { onBack: () => void }) {
                 ) : (
                   <>
                     <span className="flex-1 text-sm text-gray-800">{item.name}</span>
-                    <Button size="sm" onClick={() => {
-                      setEditId(item.id);
-                      setEditValue(item.name);
-                    }}>
+                    <Button
+                      size="sm"
+                      onClick={() => {
+                        setEditId(item.id);
+                        setEditValue(item.name);
+                      }}
+                    >
                       Editar
                     </Button>
                     <Button
                       size="sm"
                       variant="destructive"
-                      onClick={() => handleRemove(item.id)}
+                      onClick={() => setIdToDelete(item.id)}
                     >
                       Excluir
                     </Button>
@@ -208,6 +241,24 @@ export function ManageEntities({ onBack }: { onBack: () => void }) {
           )}
         </CardContent>
       </Card>
+
+      {/* Modal simples de confirmação */}
+      {idToDelete !== null && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="bg-white rounded p-6 max-w-sm w-full shadow-lg">
+            <h3 className="text-lg font-semibold mb-4">Confirma exclusão?</h3>
+            <p className="mb-6">Tem certeza que deseja excluir este item?</p>
+            <div className="flex justify-end gap-4">
+              <Button variant="outline" onClick={() => setIdToDelete(null)}>
+                Cancelar
+              </Button>
+              <Button variant="destructive" onClick={handleRemoveConfirmed}>
+                Excluir
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
