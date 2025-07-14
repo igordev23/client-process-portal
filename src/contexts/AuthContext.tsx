@@ -11,6 +11,7 @@ import { useClients } from '@/hooks/useClients';
 import { useProcesses } from '@/hooks/useProcesses';
 import { useEntities } from '@/hooks/useEntities';
 
+
 export type { Process };
 export type { ProcessUpdate } from '@/types/auth.types';
 // Export deleteProcess from the context value

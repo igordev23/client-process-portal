@@ -184,5 +184,7 @@ export function useProcesses(user: User | null) {
     updateProcessUpdate,
     deleteProcessUpdate,
     getClientProcesses,
+    fetchProcesses, // 👈 ADICIONE ISSO
+
   };
 }

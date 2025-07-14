@@ -20,6 +20,7 @@ export function ProcessManagement({ onBack }: { onBack: () => void }) {
     updateProcessUpdate,
     deleteProcessUpdate,
     deleteProcess,
+    fetchProcesses,
     user,
   } = useAuth();
 
@@ -80,18 +81,22 @@ export function ProcessManagement({ onBack }: { onBack: () => void }) {
     setIsUpdateDialogOpen(true);
   };
 
-  const handleFormSubmit = (formData: Process) => {
-    if (isEditDialogOpen && selectedProcess) {
-      updateProcess(selectedProcess.id, formData);
-      toast({ title: 'Processo atualizado', description: 'Alterações salvas com sucesso.' });
-    } else {
-      addProcess(formData);
-      toast({ title: 'Processo cadastrado', description: 'Novo processo adicionado.' });
-    }
-    setIsAddDialogOpen(false);
-    setIsEditDialogOpen(false);
-    setSelectedProcess(null);
-  };
+  const handleFormSubmit = async (formData: Process) => {
+  if (isEditDialogOpen && selectedProcess) {
+    await updateProcess(selectedProcess.id, formData);
+    await fetchProcesses(); // ✅ reflete nomes atualizados
+    toast({ title: 'Processo atualizado', description: 'Alterações salvas com sucesso.' });
+  } else {
+    await addProcess(formData);
+    await fetchProcesses();
+    toast({ title: 'Processo cadastrado', description: 'Novo processo adicionado.' });
+  }
+
+  setIsAddDialogOpen(false);
+  setIsEditDialogOpen(false);
+  setSelectedProcess(null);
+};
+
 
  const handleDeleteProcess = (id: string) => {
   if (confirm('Tem certeza que deseja excluir este processo?')) {
