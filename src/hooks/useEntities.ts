@@ -1,105 +1,78 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { storageService, storageMode } from '@/components/storage_service/storageService';
 
+type Entity = { id: number; name: string };
+
 export function useEntities() {
-  const [tipoCrimes, setTipoCrimes] = useState<string[]>([]);
-  const [comarcasVaras, setComarcasVaras] = useState<string[]>([]);
-  const [situacoesPrisionais, setSituacoesPrisionais] = useState<string[]>([]);
+  const [tipoCrimes, setTipoCrimes] = useState<Entity[]>([]);
+  const [comarcasVaras, setComarcasVaras] = useState<Entity[]>([]);
+  const [situacoesPrisionais, setSituacoesPrisionais] = useState<Entity[]>([]);
 
-  // Tipo Crimes
-  const addTipoCrime = async (value: string) => {
-    if (!tipoCrimes.includes(value)) {
-      const updated = [...tipoCrimes, value];
-      setTipoCrimes(updated);
-
-      if (storageMode === 'api') {
-await storageService.createItem('tiposCrime', { name: value });
-
-      } else {
-        storageService.setItem('tipoCrimes', updated);
-      }
+  const fetchAll = async () => {
+    if (storageMode === 'api') {
+      setTipoCrimes(await storageService.getItem('tiposCrime'));
+      setComarcasVaras(await storageService.getItem('comarcasVaras'));
+      setSituacoesPrisionais(await storageService.getItem('situacoesPrisionais'));
+    } else {
+      setTipoCrimes(storageService.getItem('tipoCrimes') || []);
+      setComarcasVaras(storageService.getItem('comarcasVaras') || []);
+      setSituacoesPrisionais(storageService.getItem('situacoesPrisionais') || []);
     }
   };
 
-  const removeTipoCrime = (value: string) => {
-    const updated = tipoCrimes.filter(item => item !== value);
-    setTipoCrimes(updated);
-    storageService.setItem('tipoCrimes', updated);
-  };
+  useEffect(() => {
+    fetchAll();
+  }, []);
 
-  const editTipoCrime = (oldValue: string, newValue: string) => {
-    const updated = tipoCrimes.map(item => (item === oldValue ? newValue : item));
-    setTipoCrimes(updated);
-    storageService.setItem('tipoCrimes', updated);
-  };
-
-  // Comarcas Varas
-  const addComarcaVara = async (value: string) => {
-    if (!comarcasVaras.includes(value)) {
-      const updated = [...comarcasVaras, value];
-      setComarcasVaras(updated);
-
-      if (storageMode === 'api') {
-        await storageService.createItem('comarcasVaras', { name: value });
-      } else {
-        storageService.setItem('comarcasVaras', updated);
-      }
+  // Adicionar
+  const addEntity = async (type: string, value: string, set: any, list: Entity[]) => {
+    if (list.some((e) => e.name === value)) return;
+    if (storageMode === 'api') {
+      const result = await storageService.createItem(type, { name: value });
+      set([...list, result]);
+    } else {
+      const updated = [...list, { id: Date.now(), name: value }];
+      set(updated);
+      storageService.setItem(type, updated);
     }
   };
 
-  const removeComarcaVara = (value: string) => {
-    const updated = comarcasVaras.filter(item => item !== value);
-    setComarcasVaras(updated);
-    storageService.setItem('comarcasVaras', updated);
-  };
-
-  const editComarcaVara = (oldValue: string, newValue: string) => {
-    const updated = comarcasVaras.map(item => (item === oldValue ? newValue : item));
-    setComarcasVaras(updated);
-    storageService.setItem('comarcasVaras', updated);
-  };
-
-  // Situações Prisionais
-  const addSituacaoPrisional = async (value: string) => {
-    if (!situacoesPrisionais.includes(value)) {
-      const updated = [...situacoesPrisionais, value];
-      setSituacoesPrisionais(updated);
-
-      if (storageMode === 'api') {
-        await storageService.createItem('situacoesPrisionais', { name: value });
-      } else {
-        storageService.setItem('situacoesPrisionais', updated);
-      }
+  // Remover
+  const removeEntity = async (type: string, id: number, set: any, list: Entity[]) => {
+    const updated = list.filter((e) => e.id !== id);
+    set(updated);
+    if (storageMode === 'api') {
+      await storageService.deleteItem(type, id);
+    } else {
+      storageService.setItem(type, updated);
     }
   };
 
-  const removeSituacaoPrisional = (value: string) => {
-    const updated = situacoesPrisionais.filter(item => item !== value);
-    setSituacoesPrisionais(updated);
-    storageService.setItem('situacoesPrisionais', updated);
-  };
-
-  const editSituacaoPrisional = (oldValue: string, newValue: string) => {
-    const updated = situacoesPrisionais.map(item => (item === oldValue ? newValue : item));
-    setSituacoesPrisionais(updated);
-    storageService.setItem('situacoesPrisionais', updated);
+  // Editar
+  const editEntity = async (type: string, id: number, newValue: string, set: any, list: Entity[]) => {
+    const updated = list.map((e) => (e.id === id ? { ...e, name: newValue } : e));
+    set(updated);
+    if (storageMode === 'api') {
+      await storageService.updateItem(type, id, { name: newValue });
+    } else {
+      storageService.setItem(type, updated);
+    }
   };
 
   return {
     tipoCrimes,
-    setTipoCrimes,
-    addTipoCrime,
-    removeTipoCrime,
-    editTipoCrime,
     comarcasVaras,
-    setComarcasVaras,
-    addComarcaVara,
-    removeComarcaVara,
-    editComarcaVara,
     situacoesPrisionais,
-    setSituacoesPrisionais,
-    addSituacaoPrisional,
-    removeSituacaoPrisional,
-    editSituacaoPrisional,
+    addTipoCrime: (value: string) => addEntity('tiposCrime', value, setTipoCrimes, tipoCrimes),
+    removeTipoCrime: (id: number) => removeEntity('tiposCrime', id, setTipoCrimes, tipoCrimes),
+    editTipoCrime: (id: number, value: string) => editEntity('tiposCrime', id, value, setTipoCrimes, tipoCrimes),
+
+    addComarcaVara: (value: string) => addEntity('comarcasVaras', value, setComarcasVaras, comarcasVaras),
+    removeComarcaVara: (id: number) => removeEntity('comarcasVaras', id, setComarcasVaras, comarcasVaras),
+    editComarcaVara: (id: number, value: string) => editEntity('comarcasVaras', id, value, setComarcasVaras, comarcasVaras),
+
+    addSituacaoPrisional: (value: string) => addEntity('situacoesPrisionais', value, setSituacoesPrisionais, situacoesPrisionais),
+    removeSituacaoPrisional: (id: number) => removeEntity('situacoesPrisionais', id, setSituacoesPrisionais, situacoesPrisionais),
+    editSituacaoPrisional: (id: number, value: string) => editEntity('situacoesPrisionais', id, value, setSituacoesPrisionais, situacoesPrisionais),
   };
 }
