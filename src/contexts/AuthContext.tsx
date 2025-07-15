@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { storageService } from '@/components/storage_service/storageService';
 import { localStorageDriver } from '@/components/storage_service/localStorageDriver';
@@ -11,12 +10,10 @@ import { useClients } from '@/hooks/useClients';
 import { useProcesses } from '@/hooks/useProcesses';
 import { useEntities } from '@/hooks/useEntities';
 import { useProcessUpdates } from '@/hooks/useProcessUpdates';
-
-
+import { fixEncodingManual, fixUsersEncoding } from '@/utils/fixEncodingManual';
 
 export type { Process };
 export type { ProcessUpdate } from '@/types/auth.types';
-// Export deleteProcess from the context value
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -29,7 +26,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const processesLogic = useProcesses(authLogic.user);
   const entitiesLogic = useEntities();
   const processUpdatesLogic = useProcessUpdates();
-
 
   useEffect(() => {
     async function loadData() {
@@ -52,12 +48,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.log('loaded processes:', storedProcesses);
       console.log('loaded user:', storedUser);
       console.log('loaded clients:', storedClients);
-      console.log('loaded users:', storedUsers);
+      console.log('loaded users (before fix):', storedUsers);
+
+      // Corrige caracteres corrompidos nos nomes dos usuários
+      const fixedUsers = fixUsersEncoding(storedUsers);
+      console.log('loaded users (after fix):', fixedUsers);
 
       authLogic.setUser(storedUser);
       clientsLogic.setClients(storedClients);
       processesLogic.setProcesses(storedProcesses);
-      setUsers(storedUsers);
+      setUsers(fixedUsers);
       entitiesLogic.setTipoCrimes(storedTipoCrimes);
       entitiesLogic.setComarcasVaras(storedComarcasVaras);
       entitiesLogic.setSituacoesPrisionais(storedSituacoesPrisionais);
