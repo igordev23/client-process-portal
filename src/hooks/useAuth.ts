@@ -1,9 +1,9 @@
-
 import { useState } from 'react';
 import { User } from '@/types/auth.types';
 import { toast } from '@/hooks/use-toast';
 import { storageService } from '@/components/storage_service/storageService';
 import { localStorageDriver } from '@/components/storage_service/localStorageDriver';
+import { fixEncodingManual } from '@/utils/fixEncodingManual'; // ✅ importado
 
 export function useAuthLogic() {
   const [user, setUser] = useState<User | null>(null);
@@ -15,6 +15,7 @@ export function useAuthLogic() {
 
       if (isApiMode && storageService.getUserByEmailAndPassword) {
         foundUser = await storageService.getUserByEmailAndPassword(email, password);
+        console.log('Users dentro do useAuth:', user);
       } else {
         const storedUsers = await storageService.getItem<User[]>('user', []);
         foundUser = storedUsers.find(
@@ -31,15 +32,17 @@ export function useAuthLogic() {
         return false;
       }
 
-      setUser(foundUser);
+      // ✅ Corrige encoding do nome antes de salvar e exibir
+      const fixedUser = { ...foundUser, name: fixEncodingManual(foundUser.name) };
+      setUser(fixedUser);
 
       if (!isApiMode) {
-        await localStorageDriver.setItem('currentUser', foundUser);
+        await localStorageDriver.setItem('currentUser', fixedUser);
       }
 
       toast({
         title: 'Login realizado com sucesso',
-        description: `Bem-vindo(a), ${foundUser.name}!`,
+        description: `Bem-vindo(a), ${fixedUser.name}!`,
       });
 
       return true;

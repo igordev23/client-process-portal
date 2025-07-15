@@ -6,6 +6,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { ClientManagement } from './ClientManagement';
 import { ProcessManagement } from './process/ProcessManagement';
 import { ManageEntities } from './ManageEntities';
+import { fixEncodingManual } from '@/utils/fixEncodingManual';
+
 
 const tabs = ['dashboard', 'clients', 'processes', 'manage'] as const;
 type TabType = typeof tabs[number];
@@ -82,7 +84,9 @@ export function Dashboard() {
             
             <div className="flex items-center space-x-4">
               <div className="text-right">
-                <p className="text-sm font-medium text-gray-900">{user?.name}</p>
+<p className="text-sm font-medium text-gray-900">
+  {fixEncodingManual(user?.name)}
+</p>
                 <p className="text-xs text-gray-500 capitalize">{user?.role === 'admin' ? 'Administrador' : 'Funcionário'}</p>
               </div>
               <Button
