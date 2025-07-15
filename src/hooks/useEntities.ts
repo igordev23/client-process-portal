@@ -1,22 +1,23 @@
+
 import { useEffect, useState } from 'react';
 import { storageService, storageMode } from '@/components/storage_service/storageService';
 
 type Entity = { id: number; name: string };
 
 export function useEntities() {
-  const [tipoCrimes, setTipoCrimes] = useState<Entity[]>([]);
-  const [comarcasVaras, setComarcasVaras] = useState<Entity[]>([]);
-  const [situacoesPrisionais, setSituacoesPrisionais] = useState<Entity[]>([]);
+  const [tipos_crime, setTiposCrime] = useState<Entity[]>([]);
+  const [comarcas_varas, setComarcasVaras] = useState<Entity[]>([]);
+  const [situacoes_prisionais, setSituacoesPrisionais] = useState<Entity[]>([]);
 
   const fetchAll = async () => {
     if (storageMode === 'api') {
-      setTipoCrimes(await storageService.getItem('tiposCrime'));
-      setComarcasVaras(await storageService.getItem('comarcasVaras'));
-      setSituacoesPrisionais(await storageService.getItem('situacoesPrisionais'));
+      setTiposCrime(await storageService.getItem('tipos_crime'));
+      setComarcasVaras(await storageService.getItem('comarcas_varas'));
+      setSituacoesPrisionais(await storageService.getItem('situacoes_prisionais'));
     } else {
-      setTipoCrimes(storageService.getItem('tipoCrimes') || []);
-      setComarcasVaras(storageService.getItem('comarcasVaras') || []);
-      setSituacoesPrisionais(storageService.getItem('situacoesPrisionais') || []);
+      setTiposCrime(await storageService.getItem('tipos_crime', []));
+      setComarcasVaras(await storageService.getItem('comarcas_varas', []));
+      setSituacoesPrisionais(await storageService.getItem('situacoes_prisionais', []));
     }
   };
 
@@ -39,46 +40,42 @@ export function useEntities() {
 
   // Remover
   const removeEntity = async (type: string, id: number, set: any, list: Entity[]) => {
-  if (storageMode === 'api') {
-    // Tenta remover do backend primeiro
-    await storageService.deleteItem(type, id);
-    // Se sucesso, atualiza o estado local
-    const updated = list.filter((e) => e.id !== id);
-    set(updated);
-  } else {
-    // Modo local: atualiza direto
-    const updated = list.filter((e) => e.id !== id);
-    set(updated);
-    storageService.setItem(type, updated);
-  }
-};
-
+    if (storageMode === 'api') {
+      await storageService.deleteItem(type, id.toString());
+      const updated = list.filter((e) => e.id !== id);
+      set(updated);
+    } else {
+      const updated = list.filter((e) => e.id !== id);
+      set(updated);
+      storageService.setItem(type, updated);
+    }
+  };
 
   // Editar
   const editEntity = async (type: string, id: number, newValue: string, set: any, list: Entity[]) => {
     const updated = list.map((e) => (e.id === id ? { ...e, name: newValue } : e));
     set(updated);
     if (storageMode === 'api') {
-      await storageService.updateItem(type, id, { name: newValue });
+      await storageService.updateItem(type, id.toString(), { name: newValue });
     } else {
       storageService.setItem(type, updated);
     }
   };
 
   return {
-    tipoCrimes,
-    comarcasVaras,
-    situacoesPrisionais,
-    addTipoCrime: (value: string) => addEntity('tiposCrime', value, setTipoCrimes, tipoCrimes),
-    removeTipoCrime: (id: number) => removeEntity('tiposCrime', id, setTipoCrimes, tipoCrimes),
-    editTipoCrime: (id: number, value: string) => editEntity('tiposCrime', id, value, setTipoCrimes, tipoCrimes),
+    tipos_crime,
+    comarcas_varas,
+    situacoes_prisionais,
+    addTipoCrime: (value: string) => addEntity('tipos_crime', value, setTiposCrime, tipos_crime),
+    removeTipoCrime: (id: number) => removeEntity('tipos_crime', id, setTiposCrime, tipos_crime),
+    editTipoCrime: (id: number, value: string) => editEntity('tipos_crime', id, value, setTiposCrime, tipos_crime),
 
-    addComarcaVara: (value: string) => addEntity('comarcasVaras', value, setComarcasVaras, comarcasVaras),
-    removeComarcaVara: (id: number) => removeEntity('comarcasVaras', id, setComarcasVaras, comarcasVaras),
-    editComarcaVara: (id: number, value: string) => editEntity('comarcasVaras', id, value, setComarcasVaras, comarcasVaras),
+    addComarcaVara: (value: string) => addEntity('comarcas_varas', value, setComarcasVaras, comarcas_varas),
+    removeComarcaVara: (id: number) => removeEntity('comarcas_varas', id, setComarcasVaras, comarcas_varas),
+    editComarcaVara: (id: number, value: string) => editEntity('comarcas_varas', id, value, setComarcasVaras, comarcas_varas),
 
-    addSituacaoPrisional: (value: string) => addEntity('situacoesPrisionais', value, setSituacoesPrisionais, situacoesPrisionais),
-    removeSituacaoPrisional: (id: number) => removeEntity('situacoesPrisionais', id, setSituacoesPrisionais, situacoesPrisionais),
-    editSituacaoPrisional: (id: number, value: string) => editEntity('situacoesPrisionais', id, value, setSituacoesPrisionais, situacoesPrisionais),
+    addSituacaoPrisional: (value: string) => addEntity('situacoes_prisionais', value, setSituacoesPrisionais, situacoes_prisionais),
+    removeSituacaoPrisional: (id: number) => removeEntity('situacoes_prisionais', id, setSituacoesPrisionais, situacoes_prisionais),
+    editSituacaoPrisional: (id: number, value: string) => editEntity('situacoes_prisionais', id, value, setSituacoesPrisionais, situacoes_prisionais),
   };
 }

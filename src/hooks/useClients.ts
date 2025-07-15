@@ -15,7 +15,7 @@ export function useClients(user: User | null) {
   };
 
   const addClient = async (
-    clientData: Omit<Client, 'id' | 'accessKey' | 'createdAt' | 'updatedAt' | 'createdBy'>
+    clientData: Omit<Client, 'id' | 'access_key' | 'created_at' | 'updated_at' | 'created_by'>
   ) => {
     if (!user) {
       toast({
@@ -29,10 +29,10 @@ export function useClients(user: User | null) {
     const newClient: Client = {
       ...clientData,
       id: Date.now().toString(),
-      accessKey: generateAccessKey(clientData.name),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      createdBy: user.id,
+      access_key: generateAccessKey(clientData.name),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      created_by: user.id,
     };
 
     try {
@@ -69,12 +69,10 @@ export function useClients(user: User | null) {
       }
 
       const updatedClient: Client = {
-      ...currentClient,
-      accessKey: currentClient.accesskey, // 👈 coloca antes para garantir que não seja sobrescrito
-      ...updates,
-      updatedAt: new Date().toISOString(),
-};
-
+        ...currentClient,
+        ...updates,
+        updated_at: new Date().toISOString(),
+      };
 
       if (storageService.updateItem) {
         await storageService.updateItem<Client>('clients', id, updatedClient);

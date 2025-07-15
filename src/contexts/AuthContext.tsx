@@ -2,9 +2,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { storageService } from '@/components/storage_service/storageService';
 import { localStorageDriver } from '@/components/storage_service/localStorageDriver';
-import { toCamelCase } from '@/components/ui/caseConverter';
-import { AuthContextType, User, Process } from '@/types/auth.types';
-
+import { AuthContextType, User, Process, ProcessUpdate } from '@/types/auth.types';
 import { initialUsers, initialClients, initialProcesses } from '@/data/initialData';
 import { useAuthLogic } from '@/hooks/useAuth';
 import { useClients } from '@/hooks/useClients';
@@ -12,11 +10,7 @@ import { useProcesses } from '@/hooks/useProcesses';
 import { useEntities } from '@/hooks/useEntities';
 import { useProcessUpdates } from '@/hooks/useProcessUpdates';
 
-
-
-export type { Process };
-export type { ProcessUpdate } from '@/types/auth.types';
-// Export deleteProcess from the context value
+export type { Process, ProcessUpdate };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -30,24 +24,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const entitiesLogic = useEntities();
   const processUpdatesLogic = useProcessUpdates();
 
-
   useEffect(() => {
     async function loadData() {
       const storedUser = isApiMode
         ? null
         : await localStorageDriver.getItem<User | null>('currentUser', null);
 
-      const rawClients = await storageService.getItem<any[]>('clients', initialClients);
-      const rawProcesses = await storageService.getItem<any[]>('processes', initialProcesses);
-      const rawUsers = await storageService.getItem<any[]>('user', initialUsers);
-      const storedTipoCrimes = await storageService.getItem<string[]>('tiposCrime', []);
-      const storedComarcasVaras = await storageService.getItem<string[]>('comarcasVaras', []);
-      const storedSituacoesPrisionais = await storageService.getItem<string[]>('situacoesPrisionais', []);
-      const storedprocessupdtaes = await storageService.getItem<any[]>('processUpdate', []);
-
-      const storedClients = toCamelCase(rawClients);
-      const storedProcesses = toCamelCase(rawProcesses);
-      const storedUsers = toCamelCase(rawUsers);
+      const storedClients = await storageService.getItem<any[]>('clients', initialClients);
+      const storedProcesses = await storageService.getItem<any[]>('processes', initialProcesses);
+      const storedUsers = await storageService.getItem<any[]>('user', initialUsers);
 
       console.log('loaded processes:', storedProcesses);
       console.log('loaded user:', storedUser);
@@ -58,9 +43,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       clientsLogic.setClients(storedClients);
       processesLogic.setProcesses(storedProcesses);
       setUsers(storedUsers);
-      entitiesLogic.setTipoCrimes(storedTipoCrimes);
-      entitiesLogic.setComarcasVaras(storedComarcasVaras);
-      entitiesLogic.setSituacoesPrisionais(storedSituacoesPrisionais);
     }
 
     loadData();

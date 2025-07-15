@@ -1,5 +1,5 @@
-// src/components/ui/caseConverter.ts
 
+// src/components/ui/caseConverter.ts
 
 export function toCamelCase(obj: any): any {
   if (Array.isArray(obj)) {

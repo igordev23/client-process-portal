@@ -1,15 +1,15 @@
+
 // src/components/process/ProcessCard.tsx
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Process, ProcessUpdate } from '@/contexts/AuthContext';
+import { Process, ProcessUpdate } from '@/types/auth.types';
 import { Pencil, Trash2 } from 'lucide-react';
 
 interface ProcessCardProps {
   process: Process;
   client?: { name: string; cpf: string };
- 
   onStatusChange: (status: Process['status']) => void;
   onAddUpdate: () => void;
   onEdit: () => void;
@@ -37,8 +37,7 @@ export function ProcessCard({
       default: return 'bg-gray-100 text-gray-800';
     }
   };
-console.log('ProcessCard - process recebido:', process);
-  console.log('ProcessCard - client recebido:', client);
+
   const getStatusText = (status: string) => {
     switch (status) {
       case 'active': return 'Em Andamento';
@@ -48,29 +47,15 @@ console.log('ProcessCard - process recebido:', process);
       default: return status;
     }
   };
-   const formatDate = (dateStr?: string) => {
-    if (!dateStr) return '—';
-    const d = new Date(dateStr);
-    return isNaN(d.getTime()) ? '—' : d.toLocaleDateString('pt-BR');
-  };
-function formatDateupdate(dateStr?: string) {
-  if (!dateStr) return '—';
-  // Cria a data a partir da string "YYYY-MM-DD" como local
-  const parts = dateStr.split('-').map(Number);
-  if (parts.length !== 3) return '—';
-  const date = new Date(parts[0], parts[1] - 1, parts[2]); // ano, mês (0-based), dia
-  return isNaN(date.getTime()) ? '—' : date.toLocaleDateString('pt-BR');
-}
-const formatDateLastUpdate = (dateStr?: string) => {
-  if (!dateStr) return '—';
-  // se vier com espaço e hora, pega só a parte da data
-  const datePart = dateStr.split(' ')[0]; // pega só "YYYY-MM-DD"
-  const parts = datePart.split('-').map(Number);
-  if (parts.length !== 3) return '—';
-  const date = new Date(parts[0], parts[1] - 1, parts[2]); // ano, mês (0-based), dia
-  return isNaN(date.getTime()) ? '—' : date.toLocaleDateString('pt-BR');
-};
 
+  const formatDate = (dateStr?: string) => {
+    if (!dateStr) return '—';
+    const datePart = dateStr.split(' ')[0]; // pega só "YYYY-MM-DD"
+    const parts = datePart.split('-').map(Number);
+    if (parts.length !== 3) return '—';
+    const date = new Date(parts[0], parts[1] - 1, parts[2]);
+    return isNaN(date.getTime()) ? '—' : date.toLocaleDateString('pt-BR');
+  };
   
   return (
     <Card>
@@ -85,14 +70,14 @@ const formatDateLastUpdate = (dateStr?: string) => {
             </div>
 
             <div className="space-y-2 text-sm text-gray-600">
-            <p><strong>Processo:</strong> {process.processnumber || '—'}</p>
-<p><strong>Cliente:</strong> {client ? `${client.name} (${client.cpf || '—'})` : '—'}</p>
+              <p><strong>Processo:</strong> {process.process_number || '—'}</p>
+              <p><strong>Cliente:</strong> {client ? `${client.name} (${client.cpf || '—'})` : '—'}</p>
               <p><strong>Advogado:</strong> {process.lawyer}</p>
-               <p><strong>Início:</strong> {formatDate(process.startdate)}</p>
-              <p><strong>Última Atualização:</strong> {formatDate(process.lastupdate)}</p>
-             <p><strong>Situação Prisional:</strong> {process.situacaoPrisional || process.situacao_prisional || '—'}</p>
-            <p><strong>Comarca / Vara:</strong> {process.comarcaVara || process.comarca_vara || '—'}</p>
-            <p><strong>Tipo de Crime:</strong> {process.tipoCrime || process.tipo_crime || '—'}</p>
+              <p><strong>Início:</strong> {formatDate(process.start_date)}</p>
+              <p><strong>Última Atualização:</strong> {formatDate(process.last_update)}</p>
+              <p><strong>Situação Prisional:</strong> {process.situacao_prisional || '—'}</p>
+              <p><strong>Comarca / Vara:</strong> {process.comarca_vara || '—'}</p>
+              <p><strong>Tipo de Crime:</strong> {process.tipo_crime || '—'}</p>
             </div>
             
             <div className="mt-3">
@@ -104,7 +89,7 @@ const formatDateLastUpdate = (dateStr?: string) => {
               <div key={update.id} className="bg-gray-50 p-3 rounded-lg relative mt-2">
                 <div className="flex justify-between items-start mb-1">
                   <span className="text-xs font-medium text-gray-900">{update.author}</span>
-<span className="text-xs text-gray-500">{formatDateupdate(update.date)}</span>
+                  <span className="text-xs text-gray-500">{formatDate(update.date)}</span>
                 </div>
                 <p className="text-sm text-gray-700">{update.description}</p>
 
