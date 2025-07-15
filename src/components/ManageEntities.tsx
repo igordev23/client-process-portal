@@ -1,18 +1,19 @@
+
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
+import { Entity } from '@/types/auth.types';
 
-type Entity = { id: number; name: string };
 type EntityType = 'tipoCrime' | 'comarcaVara' | 'situacaoPrisional';
 
 export function ManageEntities({ onBack }: { onBack: () => void }) {
   const {
-    tipoCrimes,
-    comarcasVaras,
-    situacoesPrisionais,
+    tipos_crime,
+    comarcas_varas,
+    situacoes_prisionais,
     addTipoCrime,
     removeTipoCrime,
     editTipoCrime,
@@ -35,11 +36,11 @@ export function ManageEntities({ onBack }: { onBack: () => void }) {
   const getCurrentList = (): Entity[] => {
     switch (activeTab) {
       case 'tipoCrime':
-        return tipoCrimes || [];
+        return tipos_crime || [];
       case 'comarcaVara':
-        return comarcasVaras || [];
+        return comarcas_varas || [];
       case 'situacaoPrisional':
-        return situacoesPrisionais || [];
+        return situacoes_prisionais || [];
     }
   };
 
@@ -76,7 +77,7 @@ export function ManageEntities({ onBack }: { onBack: () => void }) {
           await addSituacaoPrisional(trimmed);
           break;
       }
-      toast({ title: 'Adicionado com sucesso!', variant: 'success' });
+      toast({ title: 'Adicionado com sucesso!' });
       setEditValue('');
     } catch {
       toast({
@@ -102,7 +103,7 @@ export function ManageEntities({ onBack }: { onBack: () => void }) {
           await editSituacaoPrisional(editId, editValue.trim());
           break;
       }
-      toast({ title: 'Editado com sucesso!', variant: 'success' });
+      toast({ title: 'Editado com sucesso!' });
       setEditId(null);
       setEditValue('');
     } catch {
@@ -128,7 +129,7 @@ export function ManageEntities({ onBack }: { onBack: () => void }) {
           await removeSituacaoPrisional(idToDelete);
           break;
       }
-      toast({ title: 'Removido com sucesso!', variant: 'success' });
+      toast({ title: 'Removido com sucesso!' });
       setIdToDelete(null);
     } catch {
       toast({

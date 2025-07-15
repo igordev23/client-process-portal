@@ -2,7 +2,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { storageService } from '@/components/storage_service/storageService';
 import { localStorageDriver } from '@/components/storage_service/localStorageDriver';
-import { AuthContextType, User, Process, ProcessUpdate } from '@/types/auth.types';
+import { AuthContextType, User, Process, ProcessUpdate, Client } from '@/types/auth.types';
 import { initialUsers, initialClients, initialProcesses } from '@/data/initialData';
 import { useAuthLogic } from '@/hooks/useAuth';
 import { useClients } from '@/hooks/useClients';
@@ -10,7 +10,7 @@ import { useProcesses } from '@/hooks/useProcesses';
 import { useEntities } from '@/hooks/useEntities';
 import { useProcessUpdates } from '@/hooks/useProcessUpdates';
 
-export type { Process, ProcessUpdate };
+export type { Process, ProcessUpdate, Client, User };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
