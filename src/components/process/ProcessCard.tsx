@@ -53,7 +53,16 @@ console.log('ProcessCard - process recebido:', process);
     const d = new Date(dateStr);
     return isNaN(d.getTime()) ? '—' : d.toLocaleDateString('pt-BR');
   };
+function formatDateupdate(dateStr?: string) {
+  if (!dateStr) return '—';
+  // Cria a data a partir da string "YYYY-MM-DD" como local
+  const parts = dateStr.split('-').map(Number);
+  if (parts.length !== 3) return '—';
+  const date = new Date(parts[0], parts[1] - 1, parts[2]); // ano, mês (0-based), dia
+  return isNaN(date.getTime()) ? '—' : date.toLocaleDateString('pt-BR');
+}
 
+  
   return (
     <Card>
       <CardContent className="p-6">
@@ -86,7 +95,7 @@ console.log('ProcessCard - process recebido:', process);
               <div key={update.id} className="bg-gray-50 p-3 rounded-lg relative mt-2">
                 <div className="flex justify-between items-start mb-1">
                   <span className="text-xs font-medium text-gray-900">{update.author}</span>
-                  <span className="text-xs text-gray-500">{new Date(update.date).toLocaleDateString('pt-BR')}</span>
+<span className="text-xs text-gray-500">{formatDateupdate(update.date)}</span>
                 </div>
                 <p className="text-sm text-gray-700">{update.description}</p>
 

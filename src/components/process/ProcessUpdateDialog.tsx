@@ -13,12 +13,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Process } from '@/contexts/AuthContext';
 
+
 interface Props {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   process: Process | null;
   user: { name: string } | null;
-  onSubmit: (update: { date: string; description: string; author: string }) => void;
+ onSubmit: (update: { processId: number; date: string; description: string; author: string }) => void;
   initialData?: Process['updates'][number];
   onDelete?: () => void;
 }

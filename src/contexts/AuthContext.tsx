@@ -10,6 +10,8 @@ import { useAuthLogic } from '@/hooks/useAuth';
 import { useClients } from '@/hooks/useClients';
 import { useProcesses } from '@/hooks/useProcesses';
 import { useEntities } from '@/hooks/useEntities';
+import { useProcessUpdates } from '@/hooks/useProcessUpdates';
+
 
 
 export type { Process };
@@ -26,6 +28,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const clientsLogic = useClients(authLogic.user);
   const processesLogic = useProcesses(authLogic.user);
   const entitiesLogic = useEntities();
+  const processUpdatesLogic = useProcessUpdates();
+
 
   useEffect(() => {
     async function loadData() {
@@ -39,6 +43,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const storedTipoCrimes = await storageService.getItem<string[]>('tiposCrime', []);
       const storedComarcasVaras = await storageService.getItem<string[]>('comarcasVaras', []);
       const storedSituacoesPrisionais = await storageService.getItem<string[]>('situacoesPrisionais', []);
+      const storedprocessupdtaes = await storageService.getItem<any[]>('processUpdate', []);
 
       const storedClients = toCamelCase(rawClients);
       const storedProcesses = toCamelCase(rawProcesses);
@@ -66,6 +71,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     ...clientsLogic,
     ...processesLogic,
     ...entitiesLogic,
+    ...processUpdatesLogic,
     users,
   };
 
