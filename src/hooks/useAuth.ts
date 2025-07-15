@@ -18,7 +18,7 @@ export function useAuthLogic() {
       } else {
         const storedUsers = await storageService.getItem<User[]>('user', []);
         foundUser = storedUsers.find(
-          u => u.email === email && u.password === password && u.isActive
+          u => u.email === email && u.password === password && (u.is_active !== false)
         ) || null;
       }
 

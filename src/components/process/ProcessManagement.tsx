@@ -93,6 +93,13 @@ export function ProcessManagement({ onBack }: { onBack: () => void }) {
     setSelectedProcess(null);
   };
 
+  // Convert clients to have string ids for ProcessForm
+  const clientsForForm = clients.map(client => ({
+    id: String(client.id),
+    name: client.name,
+    cpf: client.cpf,
+  }));
+
   return (
     <div className="min-h-screen bg-gray-50">
       <ProcessForm
@@ -103,7 +110,7 @@ export function ProcessManagement({ onBack }: { onBack: () => void }) {
         }}
         onSubmit={handleFormSubmit}
         user={user}
-        clients={clients}
+        clients={clientsForForm}
         initialData={isEditDialogOpen ? selectedProcess : undefined}
       />
 
@@ -130,13 +137,6 @@ export function ProcessManagement({ onBack }: { onBack: () => void }) {
             await addProcessUpdate(selectedProcess.id, update);
             await fetchProcesses();
             toast({ title: 'Atualização adicionada', description: 'Atualização adicionada ao processo.' });
-          }
-        }}
-        onDeleteUpdate={async (update) => {
-          if (confirm('Deseja realmente excluir esta atualização?')) {
-            await deleteProcessUpdate(selectedProcess!.id, update.id);
-            await fetchProcesses();
-            toast({ title: 'Atualização excluída', description: 'A atualização foi removida com sucesso.' });
           }
         }}
       />

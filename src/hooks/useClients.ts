@@ -14,6 +14,15 @@ export function useClients(user: User | null) {
     return `${initials}${year}${random}`;
   };
 
+  const fetchClients = async () => {
+    try {
+      const storedClients = await storageService.getItem<Client[]>('clients', []);
+      setClients(storedClients);
+    } catch (error) {
+      console.error('Erro ao buscar clientes:', error);
+    }
+  };
+
   const addClient = async (
     clientData: Omit<Client, 'id' | 'access_key' | 'created_at' | 'updated_at' | 'created_by'>
   ) => {
@@ -28,7 +37,7 @@ export function useClients(user: User | null) {
 
     const newClient: Client = {
       ...clientData,
-      id: Date.now().toString(),
+      id: Date.now(),
       access_key: generateAccessKey(clientData.name),
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
@@ -63,7 +72,7 @@ export function useClients(user: User | null) {
 
   const updateClient = async (id: string, updates: Partial<Client>) => {
     try {
-      const currentClient = clients.find(client => client.id === id);
+      const currentClient = clients.find(client => String(client.id) === String(id));
       if (!currentClient) {
         throw new Error('Cliente não encontrado');
       }
@@ -76,11 +85,11 @@ export function useClients(user: User | null) {
 
       if (storageService.updateItem) {
         await storageService.updateItem<Client>('clients', id, updatedClient);
-        const updatedClients = clients.map(c => (c.id === id ? updatedClient : c));
+        const updatedClients = clients.map(c => (String(c.id) === String(id) ? updatedClient : c));
         setClients(updatedClients);
         await storageService.setItem('clients', updatedClients);
       } else {
-        const updatedClients = clients.map(c => (c.id === id ? updatedClient : c));
+        const updatedClients = clients.map(c => (String(c.id) === String(id) ? updatedClient : c));
         setClients(updatedClients);
         await storageService.setItem('clients', updatedClients);
       }
@@ -112,11 +121,11 @@ export function useClients(user: User | null) {
     try {
       if (storageService.deleteItem) {
         await storageService.deleteItem('clients', id);
-        const updatedClients = clients.filter(client => client.id !== id);
+        const updatedClients = clients.filter(client => String(client.id) !== String(id));
         setClients(updatedClients);
         await storageService.setItem('clients', updatedClients);
       } else {
-        const updatedClients = clients.filter(client => client.id !== id);
+        const updatedClients = clients.filter(client => String(client.id) !== String(id));
         setClients(updatedClients);
         await storageService.setItem('clients', updatedClients);
       }
@@ -137,5 +146,6 @@ export function useClients(user: User | null) {
     addClient,
     updateClient,
     deleteClient,
+    fetchClients,
   };
 }

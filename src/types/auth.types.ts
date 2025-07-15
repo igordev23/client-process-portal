@@ -4,6 +4,8 @@ export interface User {
   name: string;
   email: string;
   password?: string;
+  role?: string;
+  is_active?: boolean;
 }
 
 export interface Client {
@@ -67,6 +69,7 @@ export interface AuthContextType {
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
   setUser: (user: User | null) => void;
+  isAuthenticated: boolean;
   
   // Client methods
   addClient: (client: Omit<Client, 'id'>) => Promise<void>;
