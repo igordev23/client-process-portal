@@ -50,11 +50,6 @@ export interface Process {
   tipoCrimeId?: number;
 }
 
-export interface Entity {
-  id: number;
-  name: string;
-}
-
 export interface AuthContextType {
   user: User | null;
   login: (email: string, password: string) => Promise<boolean>;
@@ -73,17 +68,16 @@ export interface AuthContextType {
   getClientProcesses: (clientId: string) => Process[];
   updateProcessUpdate: (processId: string, updateId: string, newUpdate: Partial<ProcessUpdate>) => void;
   deleteProcessUpdate: (processId: string, updateId: string) => void;
-  tipoCrimes: Entity[];
+  tipoCrimes: string[];
   addTipoCrime: (value: string) => void;
-  removeTipoCrime: (id: number) => void;
-  editTipoCrime: (id: number, newValue: string) => void;
-  comarcasVaras: Entity[];
+  removeTipoCrime: (value: string) => void;
+  editTipoCrime: (oldValue: string, newValue: string) => void;
+  comarcasVaras: string[];
   addComarcaVara: (value: string) => void;
-  removeComarcaVara: (id: number) => void;
-  editComarcaVara: (id: number, newValue: string) => void;
-  situacoesPrisionais: Entity[];
+  removeComarcaVara: (value: string) => void;
+  editComarcaVara: (oldValue: string, newValue: string) => void;
+  situacoesPrisionais: string[];
   addSituacaoPrisional: (value: string) => void;
-  removeSituacaoPrisional: (id: number) => void;
-  editSituacaoPrisional: (id: number, newValue: string) => void;
-  fetchProcesses: () => Promise<void>;
+  removeSituacaoPrisional: (value: string) => void;
+  editSituacaoPrisional: (oldValue: string, newValue: string) => void;
 }
