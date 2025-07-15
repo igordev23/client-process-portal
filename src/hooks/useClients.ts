@@ -1,11 +1,21 @@
 
-import { useState } from 'react';
-import { Client, User } from '@/types/auth.types';
+import { User, Client } from '@/types/auth.types';
+import { useApiData } from './useApiData';
 import { toast } from '@/hooks/use-toast';
-import { storageService } from '@/components/storage_service/storageService';
 
 export function useClients(user: User | null) {
-  const [clients, setClients] = useState<Client[]>([]);
+  const {
+    data: clients,
+    loading,
+    fetchData,
+    createItem,
+    updateItem,
+    deleteItem,
+    setData,
+  } = useApiData<Client>({
+    key: 'clients',
+    fallback: [],
+  });
 
   const generateAccessKey = (name: string): string => {
     const initials = name.split(' ').map(n => n[0]).join('').toUpperCase();
@@ -26,9 +36,8 @@ export function useClients(user: User | null) {
       return;
     }
 
-    const newClient: Client = {
+    const newClient: Omit<Client, 'id'> = {
       ...clientData,
-      id: Date.now().toString(),
       accessKey: generateAccessKey(clientData.name),
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -36,17 +45,7 @@ export function useClients(user: User | null) {
     };
 
     try {
-      if (storageService.createItem) {
-        const savedClient = await storageService.createItem<Client>('clients', newClient);
-        const updatedClients = [...clients, savedClient];
-        setClients(updatedClients);
-        await storageService.setItem('clients', updatedClients);
-      } else {
-        const updatedClients = [...clients, newClient];
-        setClients(updatedClients);
-        await storageService.setItem('clients', updatedClients);
-      }
-
+      await createItem(newClient);
       toast({
         title: 'Cliente cadastrado',
         description: `Cliente ${newClient.name} cadastrado com sucesso`,
@@ -63,30 +62,12 @@ export function useClients(user: User | null) {
 
   const updateClient = async (id: string, updates: Partial<Client>) => {
     try {
-      const currentClient = clients.find(client => client.id === id);
-      if (!currentClient) {
-        throw new Error('Cliente não encontrado');
-      }
+      const updatedClient = {
+        ...updates,
+        updatedAt: new Date().toISOString(),
+      };
 
-      const updatedClient: Client = {
-      ...currentClient,
-      accessKey: currentClient.accesskey, // 👈 coloca antes para garantir que não seja sobrescrito
-      ...updates,
-      updatedAt: new Date().toISOString(),
-};
-
-
-      if (storageService.updateItem) {
-        await storageService.updateItem<Client>('clients', id, updatedClient);
-        const updatedClients = clients.map(c => (c.id === id ? updatedClient : c));
-        setClients(updatedClients);
-        await storageService.setItem('clients', updatedClients);
-      } else {
-        const updatedClients = clients.map(c => (c.id === id ? updatedClient : c));
-        setClients(updatedClients);
-        await storageService.setItem('clients', updatedClients);
-      }
-
+      await updateItem(id, updatedClient);
       toast({
         title: 'Cliente atualizado',
         description: 'Dados do cliente foram atualizados com sucesso',
@@ -112,17 +93,11 @@ export function useClients(user: User | null) {
     }
 
     try {
-      if (storageService.deleteItem) {
-        await storageService.deleteItem('clients', id);
-        const updatedClients = clients.filter(client => client.id !== id);
-        setClients(updatedClients);
-        await storageService.setItem('clients', updatedClients);
-      } else {
-        const updatedClients = clients.filter(client => client.id !== id);
-        setClients(updatedClients);
-        await storageService.setItem('clients', updatedClients);
-      }
-      toast({ title: 'Cliente removido', description: 'Cliente foi removido do sistema' });
+      await deleteItem(id);
+      toast({ 
+        title: 'Cliente removido', 
+        description: 'Cliente foi removido do sistema' 
+      });
     } catch (error) {
       console.error('Erro ao remover cliente:', error);
       toast({
@@ -135,7 +110,9 @@ export function useClients(user: User | null) {
 
   return {
     clients,
-    setClients,
+    loading,
+    fetchClients: fetchData,
+    setClients: setData,
     addClient,
     updateClient,
     deleteClient,
