@@ -1,4 +1,4 @@
-// src/components/process/ProcessUpdateDialog.tsx
+
 import React, { useState, useEffect } from 'react';
 import {
   Dialog,
@@ -11,15 +11,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { Process } from '@/contexts/AuthContext';
-
+import { Process } from '@/types/auth.types';
 
 interface Props {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   process: Process | null;
   user: { name: string } | null;
- onSubmit: (update: { processId: number; date: string; description: string; author: string }) => void;
+  onSubmit: (update: { date: string; description: string; author: string }) => void;
   initialData?: Process['updates'][number];
   onDelete?: () => void;
 }

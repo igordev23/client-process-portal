@@ -1,11 +1,12 @@
-// src/components/ClientManagement.tsx
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { useAuth, Client } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { Client } from '@/types/auth.types';
 import { toast } from '@/hooks/use-toast';
 
 interface ClientManagementProps {
@@ -14,8 +15,8 @@ interface ClientManagementProps {
 
 export function ClientManagement({ onBack }: ClientManagementProps) {
   const { clients, addClient, updateClient, deleteClient, user, users } = useAuth();
-  // Log para conferir os dados dos clients no momento da renderização
   console.log('Clients dentro do ClientManagement:', clients);
+  
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingClient, setEditingClient] = useState<Client | null>(null);
@@ -33,7 +34,6 @@ export function ClientManagement({ onBack }: ClientManagementProps) {
     (client.email?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false)
   );
 
-
   const resetForm = () => {
     setFormData({ name: '', cpf: '', email: '', phone: '' });
     setEditingClient(null);
@@ -47,7 +47,6 @@ export function ClientManagement({ onBack }: ClientManagementProps) {
       setEditingClient(null);
     } else {
       addClient({ ...formData });
-
       setIsAddDialogOpen(false);
     }
 
@@ -76,6 +75,11 @@ export function ClientManagement({ onBack }: ClientManagementProps) {
 
   const formatPhone = (phone: string) => {
     return phone.replace(/^(\d{2})(\d{5})(\d{4})$/, '($1) $2-$3');
+  };
+
+  // Helper function to safely access snake_case or camelCase properties
+  const getClientProperty = (client: any, camelCase: string, snakeCase: string) => {
+    return client[camelCase] || client[snakeCase] || '';
   };
 
   return (
@@ -213,19 +217,18 @@ export function ClientManagement({ onBack }: ClientManagementProps) {
                         <p><strong>Telefone:</strong> {formatPhone(client.phone)}</p>
                         <p><strong>Chave de Acesso:</strong>
                           <span className="ml-2 font-mono bg-gray-100 px-2 py-1 rounded text-xs">
-                            {client.accesskey}
+                            {getClientProperty(client, 'accessKey', 'accesskey')}
                           </span>
                         </p>
                         <p><strong>Cadastrado por:</strong> {
-                          users.find(u => Number(u.id) === Number(client.createdby))?.name || 'Desconhecido'
+                          users.find(u => Number(u.id) === Number(getClientProperty(client, 'createdBy', 'createdby')))?.name || 'Desconhecido'
                         }</p>
-
-
                       </div>
                       <p className="text-xs text-gray-400 mt-2">
-                        Cadastrado em: {client.createdat ? new Date(client.createdat).toLocaleDateString('pt-BR') : 'Data inválida'}
+                        Cadastrado em: {getClientProperty(client, 'createdAt', 'createdat') ? 
+                          new Date(getClientProperty(client, 'createdAt', 'createdat')).toLocaleDateString('pt-BR') : 
+                          'Data inválida'}
                       </p>
-
                     </div>
 
                     <div className="flex space-x-2 mt-4 md:mt-0">

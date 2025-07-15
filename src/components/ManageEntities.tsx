@@ -1,11 +1,12 @@
+
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
+import { Entity } from '@/types/auth.types';
 
-type Entity = { id: number; name: string };
 type EntityType = 'tipoCrime' | 'comarcaVara' | 'situacaoPrisional';
 
 export function ManageEntities({ onBack }: { onBack: () => void }) {
@@ -29,7 +30,6 @@ export function ManageEntities({ onBack }: { onBack: () => void }) {
   const [editValue, setEditValue] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   
-  // Estado para modal confirmação exclusão
   const [idToDelete, setIdToDelete] = useState<number | null>(null);
 
   const getCurrentList = (): Entity[] => {
@@ -76,7 +76,7 @@ export function ManageEntities({ onBack }: { onBack: () => void }) {
           await addSituacaoPrisional(trimmed);
           break;
       }
-      toast({ title: 'Adicionado com sucesso!', variant: 'success' });
+      toast({ title: 'Adicionado com sucesso!' });
       setEditValue('');
     } catch {
       toast({
@@ -102,7 +102,7 @@ export function ManageEntities({ onBack }: { onBack: () => void }) {
           await editSituacaoPrisional(editId, editValue.trim());
           break;
       }
-      toast({ title: 'Editado com sucesso!', variant: 'success' });
+      toast({ title: 'Editado com sucesso!' });
       setEditId(null);
       setEditValue('');
     } catch {
@@ -128,7 +128,7 @@ export function ManageEntities({ onBack }: { onBack: () => void }) {
           await removeSituacaoPrisional(idToDelete);
           break;
       }
-      toast({ title: 'Removido com sucesso!', variant: 'success' });
+      toast({ title: 'Removido com sucesso!' });
       setIdToDelete(null);
     } catch {
       toast({
@@ -184,7 +184,7 @@ export function ManageEntities({ onBack }: { onBack: () => void }) {
         </CardHeader>
 
         <CardContent className="space-y-2">
-          {/* Campo de novo item - só aparece se não estiver editando */}
+          {/* Campo de novo item */}
           {editId === null && (
             <div className="flex items-center gap-2 mb-2">
               <Input
@@ -242,7 +242,7 @@ export function ManageEntities({ onBack }: { onBack: () => void }) {
         </CardContent>
       </Card>
 
-      {/* Modal simples de confirmação */}
+      {/* Modal de confirmação */}
       {idToDelete !== null && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
           <div className="bg-white rounded p-6 max-w-sm w-full shadow-lg">

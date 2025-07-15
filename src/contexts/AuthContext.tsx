@@ -61,3 +61,6 @@ export function useAuth() {
   }
   return context;
 }
+
+// Re-export types for components
+export type { User, Client, Process, ProcessUpdate, Entity } from '@/types/auth.types';

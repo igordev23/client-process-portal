@@ -1,10 +1,6 @@
 
 import { useApiData } from './useApiData';
-
-export interface Entity {
-  id: number;
-  name: string;
-}
+import { Entity } from '@/types/auth.types';
 
 export function useEntityManager(entityType: string) {
   const {
