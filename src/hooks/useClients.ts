@@ -69,11 +69,12 @@ export function useClients(user: User | null) {
       }
 
       const updatedClient: Client = {
-        ...currentClient,
-        ...updates,
-        accessKey: currentClient.accessKey,
-        updatedAt: new Date().toISOString(),
-      };
+      ...currentClient,
+      accessKey: currentClient.accesskey, // 👈 coloca antes para garantir que não seja sobrescrito
+      ...updates,
+      updatedAt: new Date().toISOString(),
+};
+
 
       if (storageService.updateItem) {
         await storageService.updateItem<Client>('clients', id, updatedClient);

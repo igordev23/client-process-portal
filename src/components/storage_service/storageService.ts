@@ -2,8 +2,9 @@ import { StorageDriver } from './StorageDriver';
 import { localStorageDriver } from './localStorageDriver';
 import { apiStorageDriver } from './apiStorageDriver';
 import { toCamelCase, toSnakeCase } from '@/components/ui//caseConverter';
-
 const mode = import.meta.env.VITE_STORAGE_MODE || 'local'; // 'local' ou 'api'
+
+export const storageMode = mode;
 
 const driver: StorageDriver = mode === 'api' ? apiStorageDriver : localStorageDriver;
 

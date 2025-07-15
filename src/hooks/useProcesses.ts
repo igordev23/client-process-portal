@@ -1,53 +1,79 @@
-
 import { useState } from 'react';
-import { Process, ProcessUpdate, User } from '@/types/auth.types';
+import { Process, User } from '@/types/auth.types';
 import { toast } from '@/hooks/use-toast';
 import { storageService } from '@/components/storage_service/storageService';
 
 export function useProcesses(user: User | null) {
   const [processes, setProcesses] = useState<Process[]>([]);
 
-  const addProcess = async (processData: Omit<Process, 'id' | 'updates'>) => {
-    if (!user) {
-      toast({
-        title: 'Ação não permitida',
-        description: 'É preciso estar logado para cadastrar um processo',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    const newProcess: Process = {
-      ...processData,
-      id: Date.now().toString(),
-      updates: [],
-    };
-
+  // Buscar todos os processos
+  const fetchProcesses = async () => {
     try {
-      if (storageService.createItem) {
-        const savedProcess = await storageService.createItem<Process>('processes', newProcess);
-        const updatedProcesses = [...processes, savedProcess];
-        setProcesses(updatedProcesses);
-        await storageService.setItem('processes', updatedProcesses);
-      } else {
-        const updatedProcesses = [...processes, newProcess];
-        setProcesses(updatedProcesses);
-        await storageService.setItem('processes', updatedProcesses);
-      }
-      toast({
-        title: 'Processo cadastrado',
-        description: `Processo ${newProcess.processNumber} foi cadastrado com sucesso`,
-      });
+      const data = await storageService.getItem<Process[]>('processes', []);
+      setProcesses(data);
     } catch (error) {
-      console.error('Erro ao cadastrar processo:', error);
+      console.error('Erro ao buscar processos:', error);
       toast({
-        title: 'Erro ao salvar processo',
-        description: 'Verifique sua conexão com o servidor',
+        title: 'Erro ao carregar processos',
+        description: 'Não foi possível atualizar os dados dos processos',
         variant: 'destructive',
       });
     }
   };
+  
 
+  // Criar um novo processo
+ const addProcess = async (processData: Omit<Process, 'id' | 'updates'>) => {
+  if (!user) {
+    toast({
+      title: 'Ação não permitida',
+      description: 'É preciso estar logado para cadastrar um processo',
+      variant: 'destructive',
+    });
+    return;
+  }
+
+  const now = new Date();
+  const localIso = new Date(
+    now.getTime() - now.getTimezoneOffset() * 60000
+  ).toISOString().slice(0, 19).replace('T', ' ');
+
+  const newProcess: Process = {
+    ...processData,
+    startdate: localIso,
+    lastupdate: localIso,
+    id: Date.now().toString(),
+    updates: [],
+  };
+
+  try {
+    if (storageService.createItem) {
+      await storageService.createItem<Process>('processes', newProcess);
+      await fetchProcesses();
+    } else {
+      const updatedProcesses = [...processes, newProcess];
+      setProcesses(updatedProcesses);
+      await storageService.setItem('processes', updatedProcesses);
+    }
+
+    toast({
+      title: 'Processo cadastrado',
+      description: `Processo ${newProcess.processnumber} foi cadastrado com sucesso.`,
+    });
+  } catch (error) {
+    console.error('Erro ao cadastrar processo:', error);
+    toast({
+      title: 'Erro ao salvar processo',
+      description: 'Verifique sua conexão com o servidor',
+      variant: 'destructive',
+    });
+  }
+};
+
+
+
+
+  // Atualizar dados de um processo existente
   const updateProcess = async (id: string, updates: Partial<Process>) => {
     try {
       const updatedProcesses = processes.map(proc =>
@@ -64,7 +90,7 @@ export function useProcesses(user: User | null) {
         await storageService.setItem('processes', updatedProcesses);
       }
 
-      toast({ title: 'Processo atualizado', description: 'Dados do processo foram atualizados' });
+      toast({ title: 'Processo atualizado', description: 'Dados do processo foram atualizados.' });
     } catch (error) {
       console.error('Erro ao atualizar processo:', error);
       toast({
@@ -75,6 +101,7 @@ export function useProcesses(user: User | null) {
     }
   };
 
+  // Excluir um processo
   const deleteProcess = async (id: string) => {
     try {
       if (storageService.deleteItem) {
@@ -87,7 +114,7 @@ export function useProcesses(user: User | null) {
         setProcesses(updatedProcesses);
         await storageService.setItem('processes', updatedProcesses);
       }
-      toast({ title: 'Processo removido', description: 'Processo removido do sistema' });
+      toast({ title: 'Processo removido', description: 'Processo removido do sistema.' });
     } catch (error) {
       console.error('Erro ao remover processo:', error);
       toast({
@@ -98,62 +125,7 @@ export function useProcesses(user: User | null) {
     }
   };
 
-  const addProcessUpdate = (processId: string, updateData: Omit<ProcessUpdate, 'id'>) => {
-    const updatedProcesses = processes.map(proc => {
-      if (proc.id === processId) {
-        const newUpdate: ProcessUpdate = {
-          id: Date.now().toString(),
-          ...updateData,
-        };
-        return {
-          ...proc,
-          updates: [...proc.updates, newUpdate],
-          lastUpdate: new Date().toISOString(),
-        };
-      }
-      return proc;
-    });
-    setProcesses(updatedProcesses);
-    storageService.setItem('processes', updatedProcesses);
-    toast({ title: 'Atualização adicionada', description: 'Nova atualização do processo adicionada' });
-  };
-
-  const updateProcessUpdate = (processId: string, updateId: string, newUpdate: Partial<ProcessUpdate>) => {
-    const updatedProcesses = processes.map(proc => {
-      if (proc.id === processId) {
-        const updatedUpdates = proc.updates.map(upd =>
-          upd.id === updateId ? { ...upd, ...newUpdate } : upd
-        );
-        return {
-          ...proc,
-          updates: updatedUpdates,
-          lastUpdate: new Date().toISOString(),
-        };
-      }
-      return proc;
-    });
-    setProcesses(updatedProcesses);
-    storageService.setItem('processes', updatedProcesses);
-    toast({ title: 'Atualização modificada', description: 'Dados da atualização do processo foram modificados' });
-  };
-
-  const deleteProcessUpdate = (processId: string, updateId: string) => {
-    const updatedProcesses = processes.map(proc => {
-      if (proc.id === processId) {
-        const filteredUpdates = proc.updates.filter(upd => upd.id !== updateId);
-        return {
-          ...proc,
-          updates: filteredUpdates,
-          lastUpdate: new Date().toISOString(),
-        };
-      }
-      return proc;
-    });
-    setProcesses(updatedProcesses);
-    storageService.setItem('processes', updatedProcesses);
-    toast({ title: 'Atualização removida', description: 'Atualização do processo removida' });
-  };
-
+  // Filtrar processos por cliente
   const getClientProcesses = (clientId: string) => {
     return processes.filter(proc => proc.clientId === clientId);
   };
@@ -161,12 +133,10 @@ export function useProcesses(user: User | null) {
   return {
     processes,
     setProcesses,
+    fetchProcesses,
     addProcess,
     updateProcess,
     deleteProcess,
-    addProcessUpdate,
-    updateProcessUpdate,
-    deleteProcessUpdate,
     getClientProcesses,
   };
 }

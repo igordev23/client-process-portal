@@ -71,33 +71,36 @@ export function ProcessForm({
   const [clientDialogOpen, setClientDialogOpen] = useState(false);
 
   useEffect(() => {
-    if (isOpen) {
-      if (initialData) {
-        setFormData({
-          ...initialData,
-          situacaoPrisionalId: initialData.situacaoPrisionalId ?? 0,
-          comarcaVaraId: initialData.comarcaVaraId ?? 0,
-          tipoCrimeId: initialData.tipoCrimeId ?? 0,
-        });
-      } else {
-        setFormData({
-          id: '',
-          clientId: '',
-          processNumber: '',
-          title: '',
-          status: 'pending',
-          startDate: '',
-          lastUpdate: '',
-          description: '',
-          lawyer: user?.name || '',
-          updates: [],
-          situacaoPrisionalId: 0,
-          comarcaVaraId: 0,
-          tipoCrimeId: 0,
-        });
-      }
-    }
-  }, [isOpen, initialData]);
+  if (!isOpen) return;
+
+  if (initialData) {
+    setFormData({
+      ...initialData,
+      clientId: String(initialData.clientId ?? ''),
+      situacaoPrisionalId: Number(initialData.situacaoPrisionalId ?? 0),
+      comarcaVaraId: Number(initialData.comarcaVaraId ?? 0),
+      tipoCrimeId: Number(initialData.tipoCrimeId ?? 0),
+      startDate: initialData.startDate?.slice(0, 10) || '',
+    });
+  } else {
+    setFormData({
+      id: '',
+      clientId: '',
+      processNumber: '',
+      title: '',
+      status: 'pending',
+      startDate: '',
+      lastUpdate: '',
+      description: '',
+      lawyer: user?.name || '',
+      updates: [],
+      situacaoPrisionalId: 0,
+      comarcaVaraId: 0,
+      tipoCrimeId: 0,
+    });
+  }
+}, [isOpen, initialData?.id]);
+
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
