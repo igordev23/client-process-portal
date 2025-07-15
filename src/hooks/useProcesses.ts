@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Process, User } from '@/types/auth.types';
 import { toast } from '@/hooks/use-toast';
@@ -22,59 +21,63 @@ export function useProcesses(user: User | null) {
     }
   };
   
+
   // Criar um novo processo
-  const addProcess = async (processData: Omit<Process, 'id' | 'updates'>) => {
-    if (!user) {
-      toast({
-        title: 'Ação não permitida',
-        description: 'É preciso estar logado para cadastrar um processo',
-        variant: 'destructive',
-      });
-      return;
-    }
+ const addProcess = async (processData: Omit<Process, 'id' | 'updates'>) => {
+  if (!user) {
+    toast({
+      title: 'Ação não permitida',
+      description: 'É preciso estar logado para cadastrar um processo',
+      variant: 'destructive',
+    });
+    return;
+  }
 
-    const now = new Date();
-    const localIso = new Date(
-      now.getTime() - now.getTimezoneOffset() * 60000
-    ).toISOString().slice(0, 19).replace('T', ' ');
+  const now = new Date();
+  const localIso = new Date(
+    now.getTime() - now.getTimezoneOffset() * 60000
+  ).toISOString().slice(0, 19).replace('T', ' ');
 
-    const newProcess: Process = {
-      ...processData,
-      start_date: localIso,
-      last_update: localIso,
-      id: Date.now().toString(),
-      updates: [],
-    };
-
-    try {
-      if (storageService.createItem) {
-        await storageService.createItem<Process>('processes', newProcess);
-        await fetchProcesses();
-      } else {
-        const updatedProcesses = [...processes, newProcess];
-        setProcesses(updatedProcesses);
-        await storageService.setItem('processes', updatedProcesses);
-      }
-
-      toast({
-        title: 'Processo cadastrado',
-        description: `Processo ${newProcess.process_number} foi cadastrado com sucesso.`,
-      });
-    } catch (error) {
-      console.error('Erro ao cadastrar processo:', error);
-      toast({
-        title: 'Erro ao salvar processo',
-        description: 'Verifique sua conexão com o servidor',
-        variant: 'destructive',
-      });
-    }
+  const newProcess: Process = {
+    ...processData,
+    startdate: localIso,
+    lastupdate: localIso,
+    id: Date.now().toString(),
+    updates: [],
   };
+
+  try {
+    if (storageService.createItem) {
+      await storageService.createItem<Process>('processes', newProcess);
+      await fetchProcesses();
+    } else {
+      const updatedProcesses = [...processes, newProcess];
+      setProcesses(updatedProcesses);
+      await storageService.setItem('processes', updatedProcesses);
+    }
+
+    toast({
+      title: 'Processo cadastrado',
+      description: `Processo ${newProcess.processnumber} foi cadastrado com sucesso.`,
+    });
+  } catch (error) {
+    console.error('Erro ao cadastrar processo:', error);
+    toast({
+      title: 'Erro ao salvar processo',
+      description: 'Verifique sua conexão com o servidor',
+      variant: 'destructive',
+    });
+  }
+};
+
+
+
 
   // Atualizar dados de um processo existente
   const updateProcess = async (id: string, updates: Partial<Process>) => {
     try {
       const updatedProcesses = processes.map(proc =>
-        proc.id === id ? { ...proc, ...updates, last_update: new Date().toISOString() } : proc
+        proc.id === id ? { ...proc, ...updates, lastUpdate: new Date().toISOString() } : proc
       );
 
       if (storageService.updateItem) {
@@ -124,7 +127,7 @@ export function useProcesses(user: User | null) {
 
   // Filtrar processos por cliente
   const getClientProcesses = (clientId: string) => {
-    return processes.filter(proc => proc.client_id === clientId);
+    return processes.filter(proc => proc.clientId === clientId);
   };
 
   return {

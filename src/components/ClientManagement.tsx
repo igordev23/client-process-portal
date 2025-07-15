@@ -5,15 +5,17 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Badge } from '@/components/ui/badge';
 import { useAuth, Client } from '@/contexts/AuthContext';
+import { toast } from '@/hooks/use-toast';
 
 interface ClientManagementProps {
   onBack: () => void;
 }
 
 export function ClientManagement({ onBack }: ClientManagementProps) {
-  const { clients, addClient, updateClient, deleteClient, user } = useAuth();
+  const { clients, addClient, updateClient, deleteClient, user, users } = useAuth();
+  // Log para conferir os dados dos clients no momento da renderização
+  console.log('Clients dentro do ClientManagement:', clients);
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingClient, setEditingClient] = useState<Client | null>(null);
@@ -23,43 +25,32 @@ export function ClientManagement({ onBack }: ClientManagementProps) {
     cpf: '',
     email: '',
     phone: '',
-    access_key: '',
   });
 
-  const filteredClients = clients.filter(client => 
-    client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    client.cpf.includes(searchTerm) ||
-    client.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    client.phone?.includes(searchTerm)
+  const filteredClients = clients.filter(client =>
+    (client.name?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false) ||
+    (client.cpf?.includes(searchTerm) ?? false) ||
+    (client.email?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false)
   );
 
+
   const resetForm = () => {
-    setFormData({
-      name: '',
-      cpf: '',
-      email: '',
-      phone: '',
-      access_key: '',
-    });
+    setFormData({ name: '', cpf: '', email: '', phone: '' });
     setEditingClient(null);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (editingClient) {
-      await updateClient(editingClient.id.toString(), {
-        ...formData,
-        updated_by: user?.id || 1,
-      });
+      updateClient(editingClient.id, formData);
+      setEditingClient(null);
     } else {
-      await addClient({
-        ...formData,
-        created_by: user?.id || 1,
-      });
+      addClient({ ...formData });
+
+      setIsAddDialogOpen(false);
     }
-    
-    setIsAddDialogOpen(false);
+
     resetForm();
   };
 
@@ -68,17 +59,23 @@ export function ClientManagement({ onBack }: ClientManagementProps) {
     setFormData({
       name: client.name,
       cpf: client.cpf,
-      email: client.email || '',
-      phone: client.phone || '',
-      access_key: client.access_key || '',
+      email: client.email,
+      phone: client.phone,
     });
-    setIsAddDialogOpen(true);
   };
 
-  const handleDelete = async (clientId: string) => {
-    if (confirm('Tem certeza que deseja excluir este cliente?')) {
-      await deleteClient(clientId);
+  const handleDelete = (clientId: string) => {
+    if (window.confirm('Tem certeza que deseja excluir este cliente?')) {
+      deleteClient(clientId);
     }
+  };
+
+  const formatCPF = (cpf: string) => {
+    return cpf.replace(/^(\d{3})(\d{3})(\d{3})(\d{2})$/, '$1.$2.$3-$4');
+  };
+
+  const formatPhone = (phone: string) => {
+    return phone.replace(/^(\d{2})(\d{5})(\d{4})$/, '($1) $2-$3');
   };
 
   return (
@@ -95,75 +92,63 @@ export function ClientManagement({ onBack }: ClientManagementProps) {
               </Button>
               <h1 className="text-xl font-semibold text-gray-900">Gestão de Clientes</h1>
             </div>
-            
+
             <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
               <DialogTrigger asChild>
-                <Button className="legal-gradient text-white" onClick={() => resetForm()}>
+                <Button className="legal-gradient text-white">
                   <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                   </svg>
                   Novo Cliente
                 </Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-[500px]">
+              <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                  <DialogTitle>{editingClient ? 'Editar Cliente' : 'Cadastrar Novo Cliente'}</DialogTitle>
+                  <DialogTitle>Cadastrar Novo Cliente</DialogTitle>
                   <DialogDescription>
-                    {editingClient ? 'Altere os dados do cliente' : 'Preencha os dados do cliente'}
+                    Preencha os dados do cliente. Uma chave de acesso será gerada automaticamente.
                   </DialogDescription>
                 </DialogHeader>
-                
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="name">Nome Completo</Label>
                     <Input
                       id="name"
                       value={formData.name}
-                      onChange={(e) => setFormData({...formData, name: e.target.value})}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                       required
                     />
                   </div>
-                  
                   <div className="space-y-2">
                     <Label htmlFor="cpf">CPF</Label>
                     <Input
                       id="cpf"
-                      value={formData.cpf}
-                      onChange={(e) => setFormData({...formData, cpf: e.target.value})}
                       placeholder="000.000.000-00"
+                      value={formData.cpf}
+                      onChange={(e) => setFormData({ ...formData, cpf: e.target.value })}
                       required
                     />
                   </div>
-                  
                   <div className="space-y-2">
-                    <Label htmlFor="email">E-mail</Label>
+                    <Label htmlFor="email">Email</Label>
                     <Input
                       id="email"
                       type="email"
                       value={formData.email}
-                      onChange={(e) => setFormData({...formData, email: e.target.value})}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      required
                     />
                   </div>
-                  
                   <div className="space-y-2">
                     <Label htmlFor="phone">Telefone</Label>
                     <Input
                       id="phone"
+                      placeholder="(11) 99999-9999"
                       value={formData.phone}
-                      onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                      placeholder="(00) 00000-0000"
+                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      required
                     />
                   </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="access_key">Chave de Acesso</Label>
-                    <Input
-                      id="access_key"
-                      value={formData.access_key}
-                      onChange={(e) => setFormData({...formData, access_key: e.target.value})}
-                    />
-                  </div>
-                  
                   <div className="flex gap-2 pt-4">
                     <Button
                       type="button"
@@ -177,7 +162,7 @@ export function ClientManagement({ onBack }: ClientManagementProps) {
                       Cancelar
                     </Button>
                     <Button type="submit" className="flex-1 legal-gradient text-white">
-                      {editingClient ? 'Salvar Alterações' : 'Cadastrar'}
+                      Cadastrar
                     </Button>
                   </div>
                 </form>
@@ -192,9 +177,9 @@ export function ClientManagement({ onBack }: ClientManagementProps) {
         {/* Search */}
         <Card className="mb-6">
           <CardHeader>
-            <CardTitle>Buscar Cliente</CardTitle>
+            <CardTitle>Filtrar Clientes</CardTitle>
             <CardDescription>
-              Digite nome, CPF, e-mail ou telefone para filtrar
+              Busque por nome, CPF ou email
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -219,24 +204,31 @@ export function ClientManagement({ onBack }: ClientManagementProps) {
             filteredClients.map((client) => (
               <Card key={client.id}>
                 <CardContent className="p-6">
-                  <div className="flex items-start justify-between">
+                  <div className="flex flex-col md:flex-row md:items-center justify-between">
                     <div className="flex-1">
-                      <h3 className="font-semibold text-lg mb-2">{client.name}</h3>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-600">
-                        <p><strong>CPF:</strong> {client.cpf}</p>
-                        <p><strong>E-mail:</strong> {client.email || 'Não informado'}</p>
-                        <p><strong>Telefone:</strong> {client.phone || 'Não informado'}</p>
-                        <p><strong>Chave de Acesso:</strong> {client.access_key || 'Não informada'}</p>
+                      <h3 className="font-semibold text-lg">{client.name}</h3>
+                      <div className="mt-2 space-y-1 text-sm text-gray-600">
+                        <p><strong>CPF:</strong> {formatCPF(client.cpf)}</p>
+                        <p><strong>Email:</strong> {client.email}</p>
+                        <p><strong>Telefone:</strong> {formatPhone(client.phone)}</p>
+                        <p><strong>Chave de Acesso:</strong>
+                          <span className="ml-2 font-mono bg-gray-100 px-2 py-1 rounded text-xs">
+                            {client.accesskey}
+                          </span>
+                        </p>
+                        <p><strong>Cadastrado por:</strong> {
+                          users.find(u => Number(u.id) === Number(client.createdby))?.name || 'Desconhecido'
+                        }</p>
+
+
                       </div>
-                      
-                      <div className="mt-3 text-xs text-gray-500">
-                        <p><strong>Criado por:</strong> Usuário {client.created_by || 'N/A'}</p>
-                        <p><strong>Criado em:</strong> {client.created_at ? new Date(client.created_at).toLocaleDateString('pt-BR') : 'N/A'}</p>
-                      </div>
+                      <p className="text-xs text-gray-400 mt-2">
+                        Cadastrado em: {client.createdat ? new Date(client.createdat).toLocaleDateString('pt-BR') : 'Data inválida'}
+                      </p>
+
                     </div>
-                    
-                    <div className="flex flex-col space-y-2 ml-4">
+
+                    <div className="flex space-x-2 mt-4 md:mt-0">
                       <Button
                         variant="outline"
                         size="sm"
@@ -244,14 +236,15 @@ export function ClientManagement({ onBack }: ClientManagementProps) {
                       >
                         Editar
                       </Button>
-                      
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => handleDelete(client.id.toString())}
-                      >
-                        Excluir
-                      </Button>
+                      {user?.role === 'admin' && (
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => handleDelete(client.id)}
+                        >
+                          Excluir
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </CardContent>
@@ -259,6 +252,75 @@ export function ClientManagement({ onBack }: ClientManagementProps) {
             ))
           )}
         </div>
+
+        {/* Edit Dialog */}
+        {editingClient && (
+          <Dialog open={!!editingClient} onOpenChange={() => setEditingClient(null)}>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>Editar Cliente</DialogTitle>
+                <DialogDescription>
+                  Atualize os dados do cliente
+                </DialogDescription>
+              </DialogHeader>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-name">Nome Completo</Label>
+                  <Input
+                    id="edit-name"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-cpf">CPF</Label>
+                  <Input
+                    id="edit-cpf"
+                    value={formData.cpf}
+                    onChange={(e) => setFormData({ ...formData, cpf: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-email">Email</Label>
+                  <Input
+                    id="edit-email"
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-phone">Telefone</Label>
+                  <Input
+                    id="edit-phone"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className="flex gap-2 pt-4">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      setEditingClient(null);
+                      resetForm();
+                    }}
+                    className="flex-1"
+                  >
+                    Cancelar
+                  </Button>
+                  <Button type="submit" className="flex-1 legal-gradient text-white">
+                    Salvar
+                  </Button>
+                </div>
+              </form>
+            </DialogContent>
+          </Dialog>
+        )}
       </main>
     </div>
   );

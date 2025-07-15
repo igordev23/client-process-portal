@@ -1,35 +1,22 @@
-
 import { useEffect, useState } from 'react';
 import { storageService, storageMode } from '@/components/storage_service/storageService';
-import { Entity } from '@/types/auth.types';
+
+type Entity = { id: number; name: string };
 
 export function useEntities() {
-  const [tipos_crime, setTiposCrime] = useState<Entity[]>([]);
-  const [comarcas_varas, setComarcasVaras] = useState<Entity[]>([]);
-  const [situacoes_prisionais, setSituacoesPrisionais] = useState<Entity[]>([]);
+  const [tipoCrimes, setTipoCrimes] = useState<Entity[]>([]);
+  const [comarcasVaras, setComarcasVaras] = useState<Entity[]>([]);
+  const [situacoesPrisionais, setSituacoesPrisionais] = useState<Entity[]>([]);
 
   const fetchAll = async () => {
-    try {
-      if (storageMode === 'api') {
-        // Usar os endpoints corretos da API
-        const tiposData = await storageService.getItem('tiposCrime', []);
-        const comarcasData = await storageService.getItem('comarcasVaras', []);
-        const situacoesData = await storageService.getItem('situacoesPrisionais', []);
-        
-        setTiposCrime(tiposData);
-        setComarcasVaras(comarcasData);
-        setSituacoesPrisionais(situacoesData);
-      } else {
-        setTiposCrime(await storageService.getItem('tipos_crime', []));
-        setComarcasVaras(await storageService.getItem('comarcas_varas', []));
-        setSituacoesPrisionais(await storageService.getItem('situacoes_prisionais', []));
-      }
-    } catch (error) {
-      console.error('Erro ao carregar entidades:', error);
-      // Fallback para arrays vazios em caso de erro
-      setTiposCrime([]);
-      setComarcasVaras([]);
-      setSituacoesPrisionais([]);
+    if (storageMode === 'api') {
+      setTipoCrimes(await storageService.getItem('tiposCrime'));
+      setComarcasVaras(await storageService.getItem('comarcasVaras'));
+      setSituacoesPrisionais(await storageService.getItem('situacoesPrisionais'));
+    } else {
+      setTipoCrimes(storageService.getItem('tipoCrimes') || []);
+      setComarcasVaras(storageService.getItem('comarcasVaras') || []);
+      setSituacoesPrisionais(storageService.getItem('situacoesPrisionais') || []);
     }
   };
 
@@ -38,74 +25,60 @@ export function useEntities() {
   }, []);
 
   // Adicionar
-  const addEntity = async (type: string, apiEndpoint: string, value: string, set: any, list: Entity[]) => {
+  const addEntity = async (type: string, value: string, set: any, list: Entity[]) => {
     if (list.some((e) => e.name === value)) return;
-    
-    try {
-      if (storageMode === 'api') {
-        const result = await storageService.createItem(apiEndpoint, { name: value });
-        set([...list, result]);
-      } else {
-        const updated = [...list, { id: Date.now(), name: value }];
-        set(updated);
-        storageService.setItem(type, updated);
-      }
-    } catch (error) {
-      console.error(`Erro ao adicionar ${type}:`, error);
+    if (storageMode === 'api') {
+      const result = await storageService.createItem(type, { name: value });
+      set([...list, result]);
+    } else {
+      const updated = [...list, { id: Date.now(), name: value }];
+      set(updated);
+      storageService.setItem(type, updated);
     }
   };
 
   // Remover
-  const removeEntity = async (type: string, apiEndpoint: string, id: number, set: any, list: Entity[]) => {
-    try {
-      if (storageMode === 'api') {
-        await storageService.deleteItem(apiEndpoint, id.toString());
-        const updated = list.filter((e) => e.id !== id);
-        set(updated);
-      } else {
-        const updated = list.filter((e) => e.id !== id);
-        set(updated);
-        storageService.setItem(type, updated);
-      }
-    } catch (error) {
-      console.error(`Erro ao remover ${type}:`, error);
-      throw error;
-    }
-  };
+  const removeEntity = async (type: string, id: number, set: any, list: Entity[]) => {
+  if (storageMode === 'api') {
+    // Tenta remover do backend primeiro
+    await storageService.deleteItem(type, id);
+    // Se sucesso, atualiza o estado local
+    const updated = list.filter((e) => e.id !== id);
+    set(updated);
+  } else {
+    // Modo local: atualiza direto
+    const updated = list.filter((e) => e.id !== id);
+    set(updated);
+    storageService.setItem(type, updated);
+  }
+};
+
 
   // Editar
-  const editEntity = async (type: string, apiEndpoint: string, id: number, newValue: string, set: any, list: Entity[]) => {
-    try {
-      if (storageMode === 'api') {
-        await storageService.updateItem(apiEndpoint, id.toString(), { name: newValue });
-        const updated = list.map((e) => (e.id === id ? { ...e, name: newValue } : e));
-        set(updated);
-      } else {
-        const updated = list.map((e) => (e.id === id ? { ...e, name: newValue } : e));
-        set(updated);
-        storageService.setItem(type, updated);
-      }
-    } catch (error) {
-      console.error(`Erro ao editar ${type}:`, error);
-      throw error;
+  const editEntity = async (type: string, id: number, newValue: string, set: any, list: Entity[]) => {
+    const updated = list.map((e) => (e.id === id ? { ...e, name: newValue } : e));
+    set(updated);
+    if (storageMode === 'api') {
+      await storageService.updateItem(type, id, { name: newValue });
+    } else {
+      storageService.setItem(type, updated);
     }
   };
 
   return {
-    tipos_crime,
-    comarcas_varas,
-    situacoes_prisionais,
-    
-    addTipoCrime: (value: string) => addEntity('tipos_crime', 'tiposCrime', value, setTiposCrime, tipos_crime),
-    removeTipoCrime: (id: number) => removeEntity('tipos_crime', 'tiposCrime', id, setTiposCrime, tipos_crime),
-    editTipoCrime: (id: number, value: string) => editEntity('tipos_crime', 'tiposCrime', id, value, setTiposCrime, tipos_crime),
+    tipoCrimes,
+    comarcasVaras,
+    situacoesPrisionais,
+    addTipoCrime: (value: string) => addEntity('tiposCrime', value, setTipoCrimes, tipoCrimes),
+    removeTipoCrime: (id: number) => removeEntity('tiposCrime', id, setTipoCrimes, tipoCrimes),
+    editTipoCrime: (id: number, value: string) => editEntity('tiposCrime', id, value, setTipoCrimes, tipoCrimes),
 
-    addComarcaVara: (value: string) => addEntity('comarcas_varas', 'comarcasVaras', value, setComarcasVaras, comarcas_varas),
-    removeComarcaVara: (id: number) => removeEntity('comarcas_varas', 'comarcasVaras', id, setComarcasVaras, comarcas_varas),
-    editComarcaVara: (id: number, value: string) => editEntity('comarcas_varas', 'comarcasVaras', id, value, setComarcasVaras, comarcas_varas),
+    addComarcaVara: (value: string) => addEntity('comarcasVaras', value, setComarcasVaras, comarcasVaras),
+    removeComarcaVara: (id: number) => removeEntity('comarcasVaras', id, setComarcasVaras, comarcasVaras),
+    editComarcaVara: (id: number, value: string) => editEntity('comarcasVaras', id, value, setComarcasVaras, comarcasVaras),
 
-    addSituacaoPrisional: (value: string) => addEntity('situacoes_prisionais', 'situacoesPrisionais', value, setSituacoesPrisionais, situacoes_prisionais),
-    removeSituacaoPrisional: (id: number) => removeEntity('situacoes_prisionais', 'situacoesPrisionais', id, setSituacoesPrisionais, situacoes_prisionais),
-    editSituacaoPrisional: (id: number, value: string) => editEntity('situacoes_prisionais', 'situacoesPrisionais', id, value, setSituacoesPrisionais, situacoes_prisionais),
+    addSituacaoPrisional: (value: string) => addEntity('situacoesPrisionais', value, setSituacoesPrisionais, situacoesPrisionais),
+    removeSituacaoPrisional: (id: number) => removeEntity('situacoesPrisionais', id, setSituacoesPrisionais, situacoesPrisionais),
+    editSituacaoPrisional: (id: number, value: string) => editEntity('situacoesPrisionais', id, value, setSituacoesPrisionais, situacoesPrisionais),
   };
 }

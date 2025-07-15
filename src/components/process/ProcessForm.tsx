@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import {
   Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle
@@ -41,98 +40,96 @@ export function ProcessForm({
   initialData
 }: Props) {
   const {
-    tipos_crime,
-    comarcas_varas,
-    situacoes_prisionais,
+    tipoCrimes,
+    comarcasVaras,
+    situacoesPrisionais,
     addTipoCrime,
     addComarcaVara,
     addSituacaoPrisional
   } = useAuth();
 
-  const [formData, setFormData] = useState<Omit<Process, 'situacao_prisional_id' | 'comarca_vara_id' | 'tipo_crime_id'> & {
-    situacao_prisional_id: number;
-    comarca_vara_id: number;
-    tipo_crime_id: number;
+  const [formData, setFormData] = useState<Omit<Process, 'situacaoPrisionalId' | 'comarcaVaraId' | 'tipoCrimeId'> & {
+    situacaoPrisionalId: number;
+    comarcaVaraId: number;
+    tipoCrimeId: number;
   }>({
     id: '',
-    client_id: '',
-    process_number: '',
+    clientId: '',
+    processNumber: '',
     title: '',
     status: 'pending',
-    start_date: '',
-    last_update: '',
+    startDate: '',
+    lastUpdate: '',
     description: '',
     lawyer: user?.name || '',
     updates: [],
-    situacao_prisional_id: 0,
-    comarca_vara_id: 0,
-    tipo_crime_id: 0,
+    situacaoPrisionalId: 0,
+    comarcaVaraId: 0,
+    tipoCrimeId: 0,
   });
 
   const [clientDialogOpen, setClientDialogOpen] = useState(false);
 
   useEffect(() => {
-    if (!isOpen) return;
+  if (!isOpen) return;
 
-    if (initialData) {
-      setFormData({
-        ...initialData,
-        client_id: String(initialData.client_id ?? ''),
-        situacao_prisional_id: Number(initialData.situacao_prisional_id ?? 0),
-        comarca_vara_id: Number(initialData.comarca_vara_id ?? 0),
-        tipo_crime_id: Number(initialData.tipo_crime_id ?? 0),
-        start_date: initialData.start_date?.slice(0, 10) || '',
-      });
-    } else {
-      setFormData({
-        id: '',
-        client_id: '',
-        process_number: '',
-        title: '',
-        status: 'pending',
-        start_date: '',
-        last_update: '',
-        description: '',
-        lawyer: user?.name || '',
-        updates: [],
-        situacao_prisional_id: 0,
-        comarca_vara_id: 0,
-        tipo_crime_id: 0,
-      });
-    }
-  }, [isOpen, initialData?.id]);
+  if (initialData) {
+    setFormData({
+      ...initialData,
+      clientId: String(initialData.clientId ?? ''),
+      situacaoPrisionalId: Number(initialData.situacaoPrisionalId ?? 0),
+      comarcaVaraId: Number(initialData.comarcaVaraId ?? 0),
+      tipoCrimeId: Number(initialData.tipoCrimeId ?? 0),
+      startDate: initialData.startDate?.slice(0, 10) || '',
+    });
+  } else {
+    setFormData({
+      id: '',
+      clientId: '',
+      processNumber: '',
+      title: '',
+      status: 'pending',
+      startDate: '',
+      lastUpdate: '',
+      description: '',
+      lawyer: user?.name || '',
+      updates: [],
+      situacaoPrisionalId: 0,
+      comarcaVaraId: 0,
+      tipoCrimeId: 0,
+    });
+  }
+}, [isOpen, initialData?.id]);
+
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.client_id || !formData.situacao_prisional_id || !formData.comarca_vara_id || !formData.tipo_crime_id) {
+    if (!formData.clientId || !formData.situacaoPrisionalId || !formData.comarcaVaraId || !formData.tipoCrimeId) {
       alert("Preencha todos os campos obrigatórios.");
       return;
     }
 
     onSubmit({
       ...formData,
-      last_update: formData.start_date
+      lastUpdate: formData.startDate
     });
     onOpenChange(false);
   };
 
-  // Garantir que as listas nunca sejam undefined
-  const situacoesPrisionaisOptions = (situacoes_prisionais || []).map((item: any, index: number) =>
+  const situacoesPrisionaisOptions = situacoesPrisionais.map((item: any, index: number) =>
     typeof item === 'string'
       ? { id: index, name: item }
-      : { id: item.id, name: item.name }
+      : { id: item.id, name: item.nome ?? item.name }
   );
-  
-  const tipoCrimesOptions = (tipos_crime || []).map((item: any, index: number) =>
+  const tipoCrimesOptions = tipoCrimes.map((item: any, index: number) =>
     typeof item === 'string'
       ? { id: index, name: item }
-      : { id: item.id, name: item.name }
+      : { id: item.id, name: item.nome ?? item.name }
   );
-  
-  const comarcasVarasOptions = (comarcas_varas || []).map((item: any, index: number) =>
+  const comarcasVarasOptions = comarcasVaras.map((item: any, index: number) =>
     typeof item === 'string'
       ? { id: index, name: item }
-      : { id: item.id, name: item.name }
+      : { id: item.id, name: item.nome ?? item.name }
   );
 
   return (
@@ -164,8 +161,8 @@ export function ProcessForm({
             <div className="flex items-center justify-between">
               <SelectWithSearch
                 label="Cliente"
-                value={formData.client_id}
-                onChange={(value) => setFormData({ ...formData, client_id: value })}
+                value={formData.clientId}
+                onChange={(value) => setFormData({ ...formData, clientId: value })}
                 options={clients.map((client) => ({
                   id: client.id,
                   label: `${client.name} - ${client.cpf}`,
@@ -182,10 +179,10 @@ export function ProcessForm({
             </div>
 
             <Input
-              id="process_number"
+              id="processNumber"
               placeholder="Número do Processo"
-              value={formData.process_number}
-              onChange={(e) => setFormData({ ...formData, process_number: e.target.value })}
+              value={formData.processNumber}
+              onChange={(e) => setFormData({ ...formData, processNumber: e.target.value })}
               required
             />
 
@@ -219,8 +216,8 @@ export function ProcessForm({
                 <Label>Data de Início</Label>
                 <Input
                   type="date"
-                  value={formData.start_date}
-                  onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
+                  value={formData.startDate}
+                  onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
                   required
                 />
               </div>
@@ -243,24 +240,24 @@ export function ProcessForm({
 
             <SelectWithAdd
               label="Situação Prisional"
-              value={formData.situacao_prisional_id}
-              onChange={(value) => setFormData({ ...formData, situacao_prisional_id: value })}
+              value={formData.situacaoPrisionalId}
+              onChange={(value) => setFormData({ ...formData, situacaoPrisionalId: value })}
               options={situacoesPrisionaisOptions}
               onAdd={addSituacaoPrisional}
             />
 
             <SelectWithAdd
               label="Comarca / Vara"
-              value={formData.comarca_vara_id}
-              onChange={(value) => setFormData({ ...formData, comarca_vara_id: value })}
+              value={formData.comarcaVaraId}
+              onChange={(value) => setFormData({ ...formData, comarcaVaraId: value })}
               options={comarcasVarasOptions}
               onAdd={addComarcaVara}
             />
 
             <SelectWithAdd
               label="Tipo de Crime"
-              value={formData.tipo_crime_id}
-              onChange={(value) => setFormData({ ...formData, tipo_crime_id: value })}
+              value={formData.tipoCrimeId}
+              onChange={(value) => setFormData({ ...formData, tipoCrimeId: value })}
               options={tipoCrimesOptions}
               onAdd={addTipoCrime}
             />
