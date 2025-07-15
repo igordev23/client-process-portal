@@ -61,6 +61,15 @@ function formatDateupdate(dateStr?: string) {
   const date = new Date(parts[0], parts[1] - 1, parts[2]); // ano, mês (0-based), dia
   return isNaN(date.getTime()) ? '—' : date.toLocaleDateString('pt-BR');
 }
+const formatDateLastUpdate = (dateStr?: string) => {
+  if (!dateStr) return '—';
+  // se vier com espaço e hora, pega só a parte da data
+  const datePart = dateStr.split(' ')[0]; // pega só "YYYY-MM-DD"
+  const parts = datePart.split('-').map(Number);
+  if (parts.length !== 3) return '—';
+  const date = new Date(parts[0], parts[1] - 1, parts[2]); // ano, mês (0-based), dia
+  return isNaN(date.getTime()) ? '—' : date.toLocaleDateString('pt-BR');
+};
 
   
   return (
