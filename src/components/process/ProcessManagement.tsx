@@ -57,11 +57,12 @@ export function ProcessManagement({ onBack }: { onBack: () => void }) {
     const client = clients.find((c) => String(c.id) === String(clientId));
 
     const lowerSearch = searchTerm.toLowerCase();
-    const matchesSearch =
-      process.title.toLowerCase().includes(lowerSearch) ||
-      process.processNumber.toLowerCase().includes(lowerSearch) ||
-      client?.name.toLowerCase().includes(lowerSearch) ||
-      client?.cpf.includes(searchTerm);
+   const matchesSearch =
+  String(process.title ?? '').toLowerCase().includes(lowerSearch) ||
+  String(process.processNumber ?? '').toLowerCase().includes(lowerSearch) ||
+  String(client?.name ?? '').toLowerCase().includes(lowerSearch) ||
+  String(client?.cpf ?? '').includes(searchTerm);
+
 
     const matchesStatus = statusFilter === 'all' || process.status === statusFilter;
     return matchesSearch && matchesStatus;
