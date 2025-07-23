@@ -1,5 +1,6 @@
 import * as XLSX from 'xlsx';
-import { Process, Client } from '@/contexts/AuthContext';
+import { Process} from '@/contexts/AuthContext';
+import { Client } from '@/types/auth.types';
 
 export function exportProcessesToExcel(processes: Process[], clients: Client[]) {
   if (processes.length === 0) {
@@ -8,7 +9,7 @@ export function exportProcessesToExcel(processes: Process[], clients: Client[]) 
   }
 
   const data = processes.map(proc => {
-    const client = clients.find(c => c.id === proc.clientId);
+    const client = clients.find(c => c.id === proc.clientid);
 
     const updatesText = (proc.updates || [])
       .map(update => {
@@ -21,11 +22,11 @@ export function exportProcessesToExcel(processes: Process[], clients: Client[]) 
     return {
       'Título': proc.title,
       'Status': translateStatus(proc.status),
-      'Número do Processo': proc.processNumber,
+      'Número do Processo': proc.processnumber,
       'Cliente': `${client?.name || 'Desconhecido'} (${client?.cpf || '-'})`,
       'Advogado': proc.lawyer || '—',
-      'Início': formatDate(proc.startDate),
-      'Última Atualização': formatDate(proc.lastUpdate),
+      'Início': formatDate(proc.startdate),
+      'Última Atualização': formatDate(proc.lastupdate),
       'Situação Prisional': proc.situacaoPrisional || '—',
       'Comarca / Vara': proc.comarcaVara || '—',
       'Tipo de Crime': proc.tipoCrime || '—',
