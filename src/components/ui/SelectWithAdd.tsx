@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useToast } from "@/components/ui/use-toast";
 
 interface Option {
   id: number;
@@ -39,7 +40,7 @@ export function SelectWithAdd({
   const [dialogOpen, setDialogOpen] = useState(false);
   const [newOption, setNewOption] = useState("");
   const [search, setSearch] = useState("");
-
+  const { toast } = useToast();
   const filteredOptions = useMemo(() => {
     if (!search.trim()) return options;
     return options.filter((opt) =>
@@ -52,18 +53,24 @@ export function SelectWithAdd({
   )?.name;
 
   const handleAdd = () => {
-    const trimmed = newOption.trim();
-    if (
-      trimmed &&
-      !options.some(
-        (opt) => opt.name.toLowerCase() === trimmed.toLowerCase()
-      )
-    ) {
-      onAdd(trimmed);
-      setNewOption("");
-      setDialogOpen(false);
-    }
-  };
+  const trimmed = newOption.trim();
+  if (
+    trimmed &&
+    !options.some(
+      (opt) => opt.name.toLowerCase() === trimmed.toLowerCase()
+    )
+  ) {
+    onAdd(trimmed);
+    toast({
+      title: "Item adicionado",
+      description: `“${trimmed}” foi adicionado com sucesso.`,
+      duration: 3000,
+    });
+    setNewOption("");
+    setDialogOpen(false);
+  }
+};
+
 
   return (
     <div className="space-y-2">
