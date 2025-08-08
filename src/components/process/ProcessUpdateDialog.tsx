@@ -33,21 +33,32 @@ export function ProcessUpdateDialog({
   initialData,
   onDelete,
 }: Props) {
+    // Log assim que o componente renderiza e recebe props
+  console.log('🚩 Props recebidas:', { isOpen, process, user, initialData });
   const [updateData, setUpdateData] = useState({
     date: new Date().toISOString().split('T')[0],
     description: '',
     author: user?.name || '',
   });
+useEffect(() => {
+  console.log('🔍 Valor atualizado do autor:', updateData.author);
+}, [updateData.author]);
 
   useEffect(() => {
+    
     if (isOpen) {
+       console.log('🚩 Diálogo aberto com initialData:', initialData);
+           console.log('👤 user?.name recebido:', user?.name); // 👈 ADICIONE ISSO
+
       if (initialData) {
+        console.log('📝 Dados iniciais para edição:', initialData);
         setUpdateData({
           date: initialData.date,
           description: initialData.description,
           author: initialData.author,
         });
       } else {
+        console.log('📝 Criando nova atualização, dados iniciais padrão');
         setUpdateData({
           date: new Date().toISOString().split('T')[0],
           description: '',
@@ -59,14 +70,17 @@ export function ProcessUpdateDialog({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(updateData);
+    console.log('📤 Enviando dados para submissão:', { ...updateData, processId: process?.id });
+    if (process?.id !== undefined) {
+      onSubmit({ ...updateData, processId: Number(process.id) });
+    }
     onOpenChange(false);
   };
 
   const handleCancel = () => {
     onOpenChange(false);
   };
-
+console.log(' recebendo dados do processupdate ',updateData.author, updateData.date, updateData.description);
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
@@ -93,11 +107,13 @@ export function ProcessUpdateDialog({
               required
             />
           </div>
-
+          
           <div className="space-y-2">
             <Label htmlFor="update-author">Autor</Label>
+           
             <Input
               id="update-author"
+              
               value={updateData.author}
               onChange={(e) =>
                 setUpdateData({ ...updateData, author: e.target.value })
