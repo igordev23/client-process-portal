@@ -1,8 +1,6 @@
-<<<<<<< main
+# Sistema de Gestão Jurídica Legal Control
 
-# Sistema de Gestão Jurídica
-
-Um sistema web para gestão de processos jurídicos desenvolvido com React + TypeScript + Vite.
+Um sistema web completo para gestão de processos jurídicos, clientes e atualizações processuais desenvolvido com React + TypeScript + Vite.
 
 ## 🚀 Tecnologias
 
@@ -13,168 +11,233 @@ Um sistema web para gestão de processos jurídicos desenvolvido com React + Typ
 - **Shadcn/UI** - Componentes UI
 - **React Router** - Roteamento
 - **TanStack Query** - Gerenciamento de estado
+- **Supabase** - Backend como serviço (autenticação e banco de dados)
+- **React Hook Form** - Gerenciamento de formulários
+- **Zod** - Validação de schemas
+
+## 📋 Funcionalidades
+
+### 🔐 Autenticação
+- Sistema de login com email e senha
+- Controle de acesso baseado em roles (admin/user)
+- Persistência de sessão
+
+### 👥 Gestão de Clientes
+- Cadastro completo de clientes
+- Geração automática de chave de acesso
+- Edição e exclusão (apenas admin)
+- Listagem com busca e filtros
+
+### ⚖️ Gestão de Processos
+- Cadastro de processos jurídicos
+- Vinculação com clientes
+- Controle de status e datas
+- Histórico de atualizações
+- Exportação para Excel
+
+### 📊 Dashboard
+- Visão geral dos dados
+- Estatísticas de processos
+- Acesso rápido às funcionalidades principais
+
+### 🔧 Gerenciamento de Entidades
+- Tipos de crime
+- Comarcas e varas
+- Situações prisionais
+- Sistema CRUD para todas as entidades
 
 ## 🛠️ Como executar
 
+### Pré-requisitos
+- Node.js 18+
+- npm ou yarn
+
+### Instalação
 ```bash
+# Clonar o repositório
+git clone [url-do-repositorio]
+
+# Entrar no diretório
+cd client-process-portal
+
 # Instalar dependências
 npm install
 
-# Executar em modo desenvolvimento (com TypeScript automático)
+# Executar em modo desenvolvimento
 npm run dev
 
-# Build para produção (com verificação TypeScript)
+# Build para produção
 npm run build
 
-# Verificar tipos TypeScript manualmente
+# Verificar tipos TypeScript
 npm run type-check
+```
+
+### Variáveis de Ambiente
+Crie um arquivo `.env` na raiz do projeto:
+```env
+VITE_STORAGE_MODE=api
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
 
 ## 📁 Estrutura do Projeto
 
 ```
 src/
-├── components/          # Componentes React (.tsx)
-│   ├── ui/             # Componentes base do Shadcn/UI
-│   ├── Dashboard.tsx   # Dashboard principal
-│   ├── LoginForm.tsx   # Formulário de login
-│   └── ...
-├── contexts/           # Contextos React (.tsx)
-│   └── AuthContext.tsx
-├── hooks/              # Custom hooks (.ts/.tsx)
-├── lib/                # Utilitários (.ts)
-├── pages/              # Páginas (.tsx)
-├── types/              # Definições de tipos (.d.ts)
-└── main.tsx           # Ponto de entrada
+├── components/              # Componentes React
+│   ├── ui/                 # Componentes base do Shadcn/UI
+│   ├── process/            # Componentes específicos de processos
+│   ├── storage_service/    # Serviços de armazenamento
+│   ├── ClientManagement.tsx
+│   ├── Dashboard.tsx
+│   ├── LoginForm.tsx
+│   ├── ManageEntities.tsx
+│   └── ProcessManagement.tsx
+├── contexts/               # Contextos React
+│   └── AuthContext.tsx    # Contexto de autenticação
+├── hooks/                 # Custom hooks
+│   ├── useAuth.ts
+│   ├── useClients.ts
+│   ├── useProcesses.ts
+│   ├── useEntities.ts
+│   └── useProcessUpdates.ts
+├── lib/                   # Utilitários e bibliotecas
+│   ├── export/           # Funcionalidades de exportação
+│   └── utils.ts
+├── pages/                # Páginas da aplicação
+│   ├── Index.tsx
+│   └── NotFound.tsx
+├── types/                # Definições de tipos TypeScript
+│   └── auth.types.ts
+├── utils/                # Funções utilitárias
+└── data/                 # Dados iniciais
+    └── initialData.ts
 ```
 
-## 📝 Como adicionar novos arquivos TypeScript
+## 🔄 Arquitetura de Dados
 
-### 1. Componentes React
+### Modelos Principais
+
+#### Cliente
 ```typescript
-// src/components/MeuComponente.tsx
-import React from 'react';
-
-interface MeuComponenteProps {
-  titulo: string;
-  opcoes?: string[];
-}
-
-export function MeuComponente({ titulo, opcoes = [] }: MeuComponenteProps) {
-  return (
-    <div>
-      <h1>{titulo}</h1>
-      {opcoes.map((opcao, index) => (
-        <p key={index}>{opcao}</p>
-      ))}
-    </div>
-  );
-}
-```
-
-### 2. Hooks customizados
-```typescript
-// src/hooks/useMeuHook.ts
-import { useState, useEffect } from 'react';
-
-interface MeuHookReturn {
-  dados: string[];
-  carregando: boolean;
-  erro: string | null;
-}
-
-export function useMeuHook(): MeuHookReturn {
-  const [dados, setDados] = useState<string[]>([]);
-  const [carregando, setCarregando] = useState(true);
-  const [erro, setErro] = useState<string | null>(null);
-
-  useEffect(() => {
-    // Lógica do hook
-  }, []);
-
-  return { dados, carregando, erro };
-}
-```
-
-### 3. Utilitários e funções
-```typescript
-// src/lib/utils.ts
-export interface FormatarDataOptions {
-  formato?: 'DD/MM/YYYY' | 'MM/DD/YYYY';
-  incluirHora?: boolean;
-}
-
-export function formatarData(data: Date, options: FormatarDataOptions = {}): string {
-  // Implementação
-  return data.toLocaleDateString('pt-BR');
-}
-```
-
-### 4. Tipos e interfaces
-```typescript
-// src/types/cliente.d.ts
-export interface Cliente {
+interface Client {
   id: string;
-  nome: string;
+  name: string;
   cpf: string;
   email: string;
-  telefone?: string;
-  endereco: {
-    rua: string;
-    cidade: string;
-    estado: string;
-    cep: string;
-  };
-  criadoEm: Date;
-  chaveAcesso: string;
+  phone?: string;
+  address: string;
+  accessKey: string;
+  createdAt: string;
+  updatedAt: string;
+  createdBy: string;
 }
-
-export type StatusProcesso = 'ativo' | 'pendente' | 'concluido' | 'cancelado';
 ```
 
-## 🔧 Configuração TypeScript
-
-O projeto usa as seguintes configurações:
-
-- **tsconfig.json** - Configuração principal do TypeScript
-- **tsconfig.app.json** - Configuração específica da aplicação
-- **tsconfig.node.json** - Configuração para scripts Node.js
-
-### Principais recursos habilitados:
-- Strict mode (verificação rigorosa)
-- JSX com React 18
-- Resolução de módulos ESNext
-- Aliases de caminho (`@/` aponta para `src/`)
-
-## ✅ Boas práticas TypeScript
-
-1. **Sempre defina tipos para props de componentes**
-2. **Use interfaces para objetos complexos**
-3. **Prefira `type` para unions e primitivos**
-4. **Evite `any` - use `unknown` quando necessário**
-5. **Use genéricos para funções reutilizáveis**
-
-## 🚨 Verificação de tipos
-
-O TypeScript é verificado automaticamente durante:
-- `npm run dev` (modo desenvolvimento)
-- `npm run build` (build de produção)
-- No editor com extensão TypeScript
-
-### Comandos úteis:
-```bash
-# Verificar tipos sem executar
-npx tsc --noEmit
-
-# Verificar tipos com watch mode
-npx tsc --noEmit --watch
+#### Processo
+```typescript
+interface Process {
+  id: string;
+  processNumber: string;
+  clientId: string;
+  tipoCrime: string;
+  comarcaVara: string;
+  situacaoPrisional: string;
+  startDate: string;
+  lastUpdate: string;
+  updates: ProcessUpdate[];
+}
 ```
 
-## 📚 Recursos adicionais
+#### Usuário
+```typescript
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  password: string;
+  role: 'admin' | 'user';
+  isActive: boolean;
+}
+```
 
-- [TypeScript Handbook](https://www.typescriptlang.org/docs/)
-- [React + TypeScript Cheatsheet](https://react-typescript-cheatsheet.netlify.app/)
-- [Vite TypeScript Guide](https://vitejs.dev/guide/features.html#typescript)
-=======
-# Criação da branch conectar_bd para a modelação do banco de dados.
->>>>>>> Conectar_BD
+## 🎨 Sistema de Design
+
+O projeto utiliza um sistema de design baseado em:
+
+- **Tokens semânticos** no `index.css`
+- **Configuração personalizada** no `tailwind.config.ts`
+- **Componentes Shadcn/UI** customizados
+- **Modo escuro/claro** automático
+- **Design responsivo** para todas as telas
+
+### Cores principais
+```css
+:root {
+  --primary: [cor principal do sistema]
+  --secondary: [cor secundária]
+  --accent: [cor de destaque]
+  --background: [cor de fundo]
+  --foreground: [cor do texto]
+}
+```
+
+## 🔧 Configurações
+
+### TypeScript
+- Strict mode habilitado
+- Configuração modular (app, node)
+- Aliases de caminho (`@/` → `src/`)
+- Verificação rigorosa de tipos
+
+### Tailwind CSS
+- Configuração personalizada
+- Sistema de tokens semânticos
+- Componentes base customizáveis
+- Suporte a dark mode
+
+## 📊 Funcionalidades Avançadas
+
+### Exportação de Dados
+- Exportação de processos para Excel
+- Formatação automática de dados
+- Filtros customizáveis
+
+### Busca e Filtros
+- Busca em tempo real
+- Filtros múltiplos
+- Ordenação customizável
+
+### Atualizações em Tempo Real
+- Sincronização com Supabase
+- Atualizações automáticas
+- Estado consistente
+
+## 🚨 Problemas Conhecidos
+
+### Inconsistência de Nomenclatura
+O projeto possui inconsistências entre `camelCase` e `snake_case` que estão sendo tratadas:
+- Propriedades do banco de dados em `snake_case`
+- Interface TypeScript em `camelCase`
+- Funções de conversão sendo implementadas
+
+## 🤝 Contribuição
+
+1. Faça um fork do projeto
+2. Crie uma branch para sua feature (`git checkout -b feature/nova-feature`)
+3. Commit suas mudanças (`git commit -am 'Adiciona nova feature'`)
+4. Push para a branch (`git push origin feature/nova-feature`)
+5. Abra um Pull Request
+
+## 📄 Licença
+
+Este projeto está sob a licença [especificar licença].
+
+## 📞 Suporte
+
+Para dúvidas ou suporte, entre em contato através de [informações de contato].
+
+---
+
+**Desenvolvido por Avantech** 🚀
