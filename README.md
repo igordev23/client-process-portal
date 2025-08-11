@@ -295,7 +295,7 @@ O projeto possui inconsistências entre `camelCase` e `snake_case` que estão se
 
 **Desenvolvido por:** Avantech
 
-**Cliente:** Escritório Jurídico Legal Control
+**Cliente:** Escritório Jurídico
 
 ### Como Contribuir
 1. Faça um fork do projeto
