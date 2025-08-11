@@ -1,16 +1,8 @@
 # 📋 Requisitos do Sistema LegalControl
 
-## 🎯 Contexto do Levantamento
-
-**Técnica utilizada:** Entrevista online semiestruturada  
-**Data:** 29 de abril de 2025  
 **Cliente:** Cristiele Medeiros (Advogada Criminalista)  
 **Equipe:** Savyo Francisco, Mardone Silva, Francisco Igor, Ikaro Herbert  
 
-### Situação Atual
-- Controle manual via planilhas Excel
-- Dificuldades de organização e acesso remoto
-- Alto risco de erro humano e falta de segurança
 
 ---
 
