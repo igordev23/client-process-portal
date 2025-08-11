@@ -1,50 +1,67 @@
-# Sistema de Gestão Jurídica Legal Control
+# LegalControl - Sistema de Gestão de Processos Jurídicos
 
-Um sistema web completo para gestão de processos jurídicos, clientes e atualizações processuais desenvolvido com React + TypeScript + Vite.
+> **Sistema web moderno para substituir planilhas no controle de processos jurídicos, oferecendo segurança, organização e acesso controlado para advogados, funcionários e clientes.**
+
+## 🎯 Objetivo do Projeto
+
+Desenvolver um sistema web seguro, responsivo e prático para **substituir o uso de planilhas** no controle de processos jurídicos, permitindo à advogada e à equipe um gerenciamento mais eficiente das informações e possibilitando que os **clientes consultem o andamento de seus processos com segurança**.
+
+### 📋 Contexto do Negócio
+
+**Situação Atual:**
+- ❌ Uso de planilhas Excel para cadastro de clientes e controle de processos
+- ❌ Falta de organização e segurança
+- ❌ Acesso remoto limitado
+- ❌ Alto risco de erro humano
+
+**Solução Proposta:**
+- ✅ Sistema centralizado e online
+- ✅ Acesso segmentado por perfil
+- ✅ Maior segurança e usabilidade
+- ✅ Interface responsiva para todos os dispositivos
 
 ## 🚀 Tecnologias
 
-- **React 18** - Framework principal
-- **TypeScript** - Tipagem estática
-- **Vite** - Build tool e dev server
-- **Tailwind CSS** - Estilização
-- **Shadcn/UI** - Componentes UI
-- **React Router** - Roteamento
-- **TanStack Query** - Gerenciamento de estado
-- **Supabase** - Backend como serviço (autenticação e banco de dados)
-- **React Hook Form** - Gerenciamento de formulários
-- **Zod** - Validação de schemas
+- **React 18** com **TypeScript** - Interface moderna e tipada
+- **Vite** - Build tool otimizada para desenvolvimento
+- **Tailwind CSS** + **Shadcn/UI** - Design system consistente
+- **Supabase** - Backend completo (autenticação, banco de dados)
+- **React Router** - Navegação entre páginas
+- **TanStack Query** - Gerenciamento de estado e cache
+- **React Hook Form** + **Zod** - Formulários e validação
+- **Export Excel** - Relatórios e exportação de dados
 
-## 📋 Funcionalidades
+## 👥 Tipos de Usuários
 
-### 🔐 Autenticação
-- Sistema de login com email e senha
-- Controle de acesso baseado em roles (admin/user)
-- Persistência de sessão
+| Tipo de Usuário | Permissões | Acesso |
+|------------------|------------|--------|
+| **Administrador** | Acesso total (cadastro, edição, exclusão) | Sistema completo |
+| **Funcionário** | Cadastro e edição, sem permissão para excluir | Sistema administrativo |
+| **Cliente** | Consulta ao próprio processo | Portal do cliente |
 
-### 👥 Gestão de Clientes
-- Cadastro completo de clientes
-- Geração automática de chave de acesso
-- Edição e exclusão (apenas admin)
-- Listagem com busca e filtros
+## 📋 Funcionalidades Principais
 
-### ⚖️ Gestão de Processos
-- Cadastro de processos jurídicos
-- Vinculação com clientes
-- Controle de status e datas
-- Histórico de atualizações
-- Exportação para Excel
+### 🔐 Área Administrativa (Advogada e Funcionários)
+- ✅ Login seguro com email e senha individual
+- ✅ Cadastro e edição completa de clientes
+- ✅ Gestão de processos jurídicos com status
+- ✅ Histórico de atualizações processuais
+- ✅ Filtros avançados (nome, CPF, status, etc.)
+- ✅ Exportação de relatórios em Excel
+- ✅ Controle de permissões por perfil
+- ✅ Dashboard com estatísticas
 
-### 📊 Dashboard
-- Visão geral dos dados
-- Estatísticas de processos
-- Acesso rápido às funcionalidades principais
+### 👤 Área do Cliente
+- ✅ Acesso por **CPF + chave de segurança**
+- ✅ Visualização exclusiva do próprio processo
+- ✅ Interface simples e responsiva
+- ✅ Otimizado para dispositivos móveis
 
 ### 🔧 Gerenciamento de Entidades
-- Tipos de crime
-- Comarcas e varas
-- Situações prisionais
-- Sistema CRUD para todas as entidades
+- ✅ Tipos de crime
+- ✅ Comarcas e varas
+- ✅ Situações prisionais
+- ✅ Sistema CRUD completo para configurações
 
 ## 🛠️ Como executar
 
@@ -214,30 +231,84 @@ O projeto utiliza um sistema de design baseado em:
 - Atualizações automáticas
 - Estado consistente
 
-## 🚨 Problemas Conhecidos
+## 🔒 Segurança e Conformidade
 
-### Inconsistência de Nomenclatura
+### Regras de Negócio
+- ✅ **Acesso restrito**: Cada cliente acessa apenas suas informações
+- ✅ **Controle de permissões**: Funcionários não podem excluir registros
+- ✅ **Gestão administrativa**: A advogada gerencia todo o sistema
+- ✅ **Privacidade**: Dados não indexados por mecanismos de busca
+
+### Segurança Implementada
+- 🔐 **Autenticação segura**: Login por CPF + chave (clientes) e email/senha (admin)
+- 🛡️ **Proteção de dados**: Conformidade com LGPD
+- 🚫 **Anti-indexação**: Sistema protegido contra motores de busca
+- 💾 **Backup automático**: Proteção contra perda de dados via Supabase
+
+## 💰 Estimativa de Custos
+
+Com base em planos pay-as-you-go (cobrança por uso):
+
+| Item | Plano | Custo (USD) | Custo Estimado (BRL)* |
+|------|-------|-------------|----------------------|
+| **Frontend** | Render Gratuito | $0 | R$ 0 |
+| **Backend/DB** | Supabase Free | $0 | R$ 0 |
+| **Produção** | Render + Supabase Pro | $7-12 | R$ 36-62/mês |
+
+> *Valores sujeitos à variação cambial. Como projeto acadêmico com tráfego leve, mantém-se na faixa mínima.
+
+## 📅 Cronograma do Projeto
+
+| Etapa | Período | Status |
+|-------|---------|--------|
+| **Planejamento e protótipos** | Maio 2025 | ✅ Concluído |
+| **Desenvolvimento inicial** | Junho-Julho 2025 | 🔄 Em andamento |
+| **Testes e ajustes finais** | Agosto 2025 | ⏳ Planejado |
+| **Entrega do MVP** | Final de Agosto 2025 | 🎯 Meta |
+
+## ⚠️ Riscos e Mitigações
+
+| Risco | Mitigação |
+|-------|-----------|
+| Instabilidade em planos gratuitos | Plano de upgrade disponível |
+| Dificuldade de acesso dos clientes | Interface simplificada + tutoriais |
+| Perda de dados | Backups automáticos do Supabase |
+| Problemas de performance | Otimização contínua e monitoramento |
+
+## 🧪 Viabilidade do Projeto
+
+- ✅ **Técnica**: Viável (tecnologias dominadas pela equipe)
+- ✅ **Econômica**: Baixo custo com potencial de escalabilidade
+- ✅ **Operacional**: Equipe jurídica demonstrou interesse e capacidade
+- ✅ **Legal**: Conforme LGPD; sem exposição de dados
+- ✅ **Cronograma**: Realizável em 3 meses com entregas parciais
+
+## 🚨 Status Atual
+
+### ⚠️ Problemas Conhecidos
 O projeto possui inconsistências entre `camelCase` e `snake_case` que estão sendo tratadas:
 - Propriedades do banco de dados em `snake_case`
 - Interface TypeScript em `camelCase`
 - Funções de conversão sendo implementadas
 
-## 🤝 Contribuição
+### 🎯 Próximos Passos
+- [ ] Implementar portal do cliente
+- [ ] Melhorar sistema de notificações
+- [ ] Adicionar mais filtros de busca
+- [ ] Otimizar performance mobile
 
+## 🤝 Equipe e Contribuição
+
+**Desenvolvido por:** Avantech
+**Cliente:** Escritório Jurídico Legal Control
+
+### Como Contribuir
 1. Faça um fork do projeto
 2. Crie uma branch para sua feature (`git checkout -b feature/nova-feature`)
 3. Commit suas mudanças (`git commit -am 'Adiciona nova feature'`)
 4. Push para a branch (`git push origin feature/nova-feature`)
 5. Abra um Pull Request
 
-## 📄 Licença
-
-Este projeto está sob a licença [especificar licença].
-
-## 📞 Suporte
-
-Para dúvidas ou suporte, entre em contato através de [informações de contato].
-
 ---
 
-**Desenvolvido por Avantech** 🚀
+> **LegalControl** - Transformando o controle jurídico através da tecnologia 🚀
