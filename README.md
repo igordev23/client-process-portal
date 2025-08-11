@@ -6,6 +6,11 @@
 
 Desenvolver um sistema web seguro, responsivo e prático para **substituir o uso de planilhas** no controle de processos jurídicos, permitindo à advogada e à equipe um gerenciamento mais eficiente das informações.
 
+
+## 📡 Backend
+O backend deste projeto está disponível neste repositório:
+[LegalControl Server](https://github.com/igordev23/Legal_control-server/tree/main)
+
 ### 📋 Contexto do Negócio
 
 **Situação Atual:**
