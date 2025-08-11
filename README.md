@@ -4,7 +4,7 @@
 
 ## 🎯 Objetivo do Projeto
 
-Desenvolver um sistema web seguro, responsivo e prático para **substituir o uso de planilhas** no controle de processos jurídicos, permitindo à advogada e à equipe um gerenciamento mais eficiente das informações e possibilitando que os **clientes consultem o andamento de seus processos com segurança**.
+Desenvolver um sistema web seguro, responsivo e prático para **substituir o uso de planilhas** no controle de processos jurídicos, permitindo à advogada e à equipe um gerenciamento mais eficiente das informações.
 
 ### 📋 Contexto do Negócio
 
@@ -37,7 +37,7 @@ Desenvolver um sistema web seguro, responsivo e prático para **substituir o uso
 |------------------|------------|--------|
 | **Administrador** | Acesso total (cadastro, edição, exclusão) | Sistema completo |
 | **Funcionário** | Cadastro e edição, sem permissão para excluir | Sistema administrativo |
-| **Cliente** | Consulta ao próprio processo | Portal do cliente |
+
 
 ## 📋 Funcionalidades Principais
 
@@ -51,11 +51,6 @@ Desenvolver um sistema web seguro, responsivo e prático para **substituir o uso
 - ✅ Controle de permissões por perfil
 - ✅ Dashboard com estatísticas
 
-### 👤 Área do Cliente
-- ✅ Acesso por **CPF + chave de segurança**
-- ✅ Visualização exclusiva do próprio processo
-- ✅ Interface simples e responsiva
-- ✅ Otimizado para dispositivos móveis
 
 ### 🔧 Gerenciamento de Entidades
 - ✅ Tipos de crime
@@ -94,8 +89,7 @@ npm run type-check
 Crie um arquivo `.env` na raiz do projeto:
 ```env
 VITE_STORAGE_MODE=api
-VITE_SUPABASE_URL=your_supabase_url
-VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+
 ```
 
 ## 📁 Estrutura do Projeto
@@ -110,7 +104,7 @@ src/
 │   ├── Dashboard.tsx
 │   ├── LoginForm.tsx
 │   ├── ManageEntities.tsx
-│   └── ProcessManagement.tsx
+│   
 ├── contexts/               # Contextos React
 │   └── AuthContext.tsx    # Contexto de autenticação
 ├── hooks/                 # Custom hooks
@@ -227,7 +221,7 @@ O projeto utiliza um sistema de design baseado em:
 - Ordenação customizável
 
 ### Atualizações em Tempo Real
-- Sincronização com Supabase
+- Sincronização com Banco de Dados
 - Atualizações automáticas
 - Estado consistente
 
@@ -243,7 +237,7 @@ O projeto utiliza um sistema de design baseado em:
 - 🔐 **Autenticação segura**: Login por CPF + chave (clientes) e email/senha (admin)
 - 🛡️ **Proteção de dados**: Conformidade com LGPD
 - 🚫 **Anti-indexação**: Sistema protegido contra motores de busca
-- 💾 **Backup automático**: Proteção contra perda de dados via Supabase
+- 💾 **Backup automático**: Proteção contra perda de dados via Banco de dados.
 
 ## 💰 Estimativa de Custos
 
