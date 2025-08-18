@@ -33,6 +33,25 @@ export function ClientManagement({ onBack }: ClientManagementProps) {
     (client.email?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false)
   );
 
+  // Função para formatar CPF automaticamente enquanto digita
+const handleCPFChange = (cpf: string) => {
+  // Remove tudo que não for número
+  cpf = cpf.replace(/\D/g, '');
+  // Aplica a máscara: 000.000.000-00
+  if (cpf.length > 3) cpf = cpf.slice(0,3) + '.' + cpf.slice(3);
+  if (cpf.length > 7) cpf = cpf.slice(0,7) + '.' + cpf.slice(7);
+  if (cpf.length > 11) cpf = cpf.slice(0,11) + '-' + cpf.slice(11,13);
+  return cpf.slice(0,14); // Limita a 14 caracteres
+};
+
+// Função para formatar telefone automaticamente enquanto digita
+const handlePhoneChange = (phone: string) => {
+  phone = phone.replace(/\D/g, ''); // Remove tudo que não for número
+  if (phone.length > 0) phone = '(' + phone;
+  if (phone.length > 3) phone = phone.slice(0,3) + ') ' + phone.slice(3);
+  if (phone.length > 10) phone = phone.slice(0,10) + '-' + phone.slice(10,14);
+  return phone.slice(0,15); // Limita a 15 caracteres
+};
 
   const resetForm = () => {
     setFormData({ name: '', cpf: '', email: '', phone: '' });
@@ -121,13 +140,15 @@ export function ClientManagement({ onBack }: ClientManagementProps) {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="cpf">CPF</Label>
-                    <Input
-                      id="cpf"
-                      placeholder="000.000.000-00"
-                      value={formData.cpf}
-                      onChange={(e) => setFormData({ ...formData, cpf: e.target.value })}
-                      required
-                    />
+                   <Input
+                  id="cpf"
+                  placeholder="000.000.000-00"
+                  value={formData.cpf}
+                  onChange={(e) =>
+                    setFormData({ ...formData, cpf: handleCPFChange(e.target.value) })
+                  }
+                  required
+                />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="email">Email</Label>
@@ -141,13 +162,15 @@ export function ClientManagement({ onBack }: ClientManagementProps) {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="phone">Telefone</Label>
-                    <Input
-                      id="phone"
-                      placeholder="(11) 99999-9999"
-                      value={formData.phone}
-                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      required
-                    />
+                   <Input
+  id="phone"
+  placeholder="(11) 99999-9999"
+  value={formData.phone}
+  onChange={(e) =>
+    setFormData({ ...formData, phone: handlePhoneChange(e.target.value) })
+  }
+  required
+/>
                   </div>
                   <div className="flex gap-2 pt-4">
                     <Button

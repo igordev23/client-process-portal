@@ -178,13 +178,25 @@ export function ProcessForm({
               </Button>
             </div>
 
-            <Input
-              id="processNumber"
-              placeholder="Número do Processo"
-              value={formData.processNumber}
-              onChange={(e) => setFormData({ ...formData, processNumber: e.target.value })}
-              required
-            />
+           <Input
+  id="processNumber"
+  placeholder="Número do Processo (ex: 0001234-56.2023.8.26.0000)"
+  value={formData.processNumber}
+  onChange={(e) => {
+    let val = e.target.value.replace(/\D/g, ''); // Remove tudo que não for número
+    // Aplica a máscara automática
+    if (val.length > 0) val = val.slice(0, 7) + (val.length > 7 ? '-' + val.slice(7) : '');
+    if (val.length > 10) val = val.slice(0, 10) + (val.length > 10 ? '.' + val.slice(10) : '');
+    if (val.length > 15) val = val.slice(0, 15) + (val.length > 15 ? '.' + val.slice(15) : '');
+    if (val.length > 17) val = val.slice(0, 17) + (val.length > 17 ? '.' + val.slice(17) : '');
+    if (val.length > 20) val = val.slice(0, 20) + (val.length > 20 ? '.' + val.slice(20, 24) : '');
+    setFormData({ ...formData, processNumber: val });
+  }}
+  required
+  pattern="\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4}"
+  title="Formato esperado: 0001234-56.2023.8.26.0000"
+/>
+
 
             <Input
               id="title"
