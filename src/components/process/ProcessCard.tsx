@@ -73,18 +73,35 @@ export function ProcessCard({
   };
 
   const formatDate = (dateStr?: string) => {
-    if (!dateStr) return '—';
+  if (!dateStr) return '—';
+  
+  // detecta se é ISO com horário (contains 'T')
+  if (dateStr.includes('T')) {
     const d = new Date(dateStr);
-    return isNaN(d.getTime()) ? '—' : d.toLocaleDateString('pt-BR');
-  };
+    if (isNaN(d.getTime())) return '—';
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    return `${day}/${month}/${year}`;
+  } else {
+    // formato YYYY-MM-DD
+    const [year, month, day] = dateStr.split('-');
+    return `${day}/${month}/${year}`;
+  }
+};
+
+
 
   const formatDateUpdate = (dateStr?: string) => {
-    if (!dateStr) return '—';
-    const parts = dateStr.split('-').map(Number);
-    if (parts.length !== 3) return '—';
-    const date = new Date(parts[0], parts[1] - 1, parts[2]);
-    return isNaN(date.getTime()) ? '—' : date.toLocaleDateString('pt-BR');
-  };
+  if (!dateStr) return '—';
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return '—';
+  const day = String(d.getDate()).padStart(2, '0');
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const year = d.getFullYear();
+  return `${day}/${month}/${year}`;
+};
+
 
   return (
     <Card>

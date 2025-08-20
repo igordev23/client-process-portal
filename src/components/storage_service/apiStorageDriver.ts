@@ -51,11 +51,24 @@ export const apiStorageDriver: StorageDriver & {
   },
 
   async deleteItem(key: string, id: string): Promise<void> {
-    const res = await fetch(`${API_BASE}/${key}/${id}`, {
-      method: 'DELETE',
-    });
-    if (!res.ok) throw new Error(`Erro ao deletar item ${id} em ${key}`);
-  },
+  const res = await fetch(`${API_BASE}/${key}/${id}`, {
+    method: 'DELETE',
+  });
+
+  if (!res.ok) {
+    let message = `Erro ao deletar item ${id} em ${key}`;
+    try {
+      const data = await res.json();
+      if (data?.error) {
+        message = data.error; // pega a mensagem enviada pelo backend
+      }
+    } catch {
+      // caso a resposta não seja JSON, mantém a mensagem genérica
+    }
+    throw new Error(message);
+  }
+},
+
 
   // ✅ Novo método de login via API
   async getUserByEmailAndPassword(email: string, password: string): Promise<any | null> {

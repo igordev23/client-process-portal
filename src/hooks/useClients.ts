@@ -101,37 +101,47 @@ export function useClients(user: User | null) {
     }
   };
 
-  const deleteClient = async (id: string) => {
-    if (user?.role !== 'admin') {
-      toast({
-        title: 'Acesso negado',
-        description: 'Apenas administradores podem excluir clientes',
-        variant: 'destructive',
-      });
-      return;
+ const deleteClient = async (id: string) => {
+  if (user?.role !== 'admin') {
+    toast({
+      title: 'Acesso negado',
+      description: 'Apenas administradores podem excluir clientes',
+      variant: 'destructive',
+    });
+    return;
+  }
+
+  try {
+    if (storageService.deleteItem) {
+      await storageService.deleteItem('clients', id);
+      const updatedClients = clients.filter(client => client.id !== id);
+      setClients(updatedClients);
+      await storageService.setItem('clients', updatedClients);
+    } else {
+      const updatedClients = clients.filter(client => client.id !== id);
+      setClients(updatedClients);
+      await storageService.setItem('clients', updatedClients);
     }
 
-    try {
-      if (storageService.deleteItem) {
-        await storageService.deleteItem('clients', id);
-        const updatedClients = clients.filter(client => client.id !== id);
-        setClients(updatedClients);
-        await storageService.setItem('clients', updatedClients);
-      } else {
-        const updatedClients = clients.filter(client => client.id !== id);
-        setClients(updatedClients);
-        await storageService.setItem('clients', updatedClients);
-      }
-      toast({ title: 'Cliente removido', description: 'Cliente foi removido do sistema' });
-    } catch (error) {
-      console.error('Erro ao remover cliente:', error);
-      toast({
-        title: 'Erro ao remover cliente',
-        description: 'Verifique sua conexão com o servidor',
-        variant: 'destructive',
-      });
-    }
-  };
+    toast({
+      title: 'Cliente removido',
+      description: 'Cliente foi removido do sistema',
+    });
+  } catch (error: any) {
+    console.error('Erro ao remover cliente:', error);
+
+    // 🔥 Usar a mensagem do erro do backend
+    const message = error?.message || 'Verifique sua conexão com o servidor';
+
+    toast({
+      title: 'Erro ao remover cliente',
+      description: message,
+      variant: 'destructive',
+    });
+  }
+};
+
+
 
   return {
     clients,
