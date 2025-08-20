@@ -236,17 +236,17 @@ const handlePhoneChange = (phone: string) => {
                         <p><strong>Telefone:</strong> {formatPhone(client.phone)}</p>
                         <p><strong>Chave de Acesso:</strong>
                           <span className="ml-2 font-mono bg-gray-100 px-2 py-1 rounded text-xs">
-                            {client.accessKey}
+                            {client.accesskey}
                           </span>
                         </p>
                         <p><strong>Cadastrado por:</strong> {
-                          users.find(u => Number(u.id) === Number(client.createdBy))?.name || 'Desconhecido'
+                          users.find(u => Number(u.id) === Number(client.createdby))?.name || 'Desconhecido'
                         }</p>
 
 
                       </div>
                       <p className="text-xs text-gray-400 mt-2">
-                        Cadastrado em: {client.createdAt ? new Date(client.createdAt).toLocaleDateString('pt-BR') : 'Data inválida'}
+                        Cadastrado em: {client.createdat ? new Date(client.createdat).toLocaleDateString('pt-BR') : 'Data inválida'}
                       </p>
 
                     </div>

@@ -346,14 +346,14 @@ return (
             <div className="flex-1">
               <h4 className="font-medium text-sm">{process.title}</h4>
               <p className="text-xs text-gray-500">{client?.name}</p>
-              <p className="text-xs text-gray-400">{process.processNumber}</p>
+              <p className="text-xs text-gray-400">{process.processnumber}</p>
             </div>
             <div className="flex sm:flex-col sm:text-right justify-between sm:justify-end items-center sm:items-end">
               <Badge className={`text-xs ${getStatusColor(process.status)}`}>
                 {getStatusText(process.status)}
               </Badge>
               <p className="text-xs text-gray-400 sm:mt-1">
-                {new Date(process.lastUpdate).toLocaleDateString('pt-BR')}
+                {new Date(process.lastupdate).toLocaleDateString('pt-BR')}
               </p>
             </div>
           </div>
@@ -385,10 +385,10 @@ return (
           </div>
           <div className="flex sm:flex-col sm:text-right justify-between sm:justify-end items-center sm:items-end">
             <p className="text-xs font-mono bg-gray-100 px-2 py-1 rounded">
-              {client.accessKey}
+              {client.accesskey}
             </p>
             <p className="text-xs text-gray-400 sm:mt-1">
-              {new Date(client.createdAt).toLocaleDateString('pt-BR')}
+              {new Date(client.createdat).toLocaleDateString('pt-BR')}
             </p>
           </div>
         </div>
