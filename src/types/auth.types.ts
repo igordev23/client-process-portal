@@ -50,6 +50,11 @@ export interface Process {
   tipoCrimeId?: number;
 }
 
+export interface Entity {
+  id: number;
+  name: string;
+}
+
 export interface AuthContextType {
   user: User | null;
   login: (email: string, password: string) => Promise<boolean>;
@@ -58,26 +63,28 @@ export interface AuthContextType {
   clients: Client[];
   processes: Process[];
   users: User[];
+  updates: ProcessUpdate[];
+  fetchUpdates: () => Promise<void>;
   addClient: (client: Omit<Client, 'id' | 'accessKey' | 'createdAt' | 'updatedAt' | 'createdBy'>) => void;
   updateClient: (id: string, client: Partial<Client>) => void;
   deleteClient: (id: string) => void;
   addProcess: (process: Omit<Process, 'id' | 'updates'>) => void;
   updateProcess: (id: string, process: Partial<Process>) => void;
   deleteProcess: (id: string) => void;
-  addProcessUpdate: (processId: string, update: Omit<ProcessUpdate, 'id'>) => void;
+  addProcessUpdate: (processId: string, update: Omit<ProcessUpdate, 'id'>) => Promise<void>;
   getClientProcesses: (clientId: string) => Process[];
   updateProcessUpdate: (processId: string, updateId: string, newUpdate: Partial<ProcessUpdate>) => void;
   deleteProcessUpdate: (processId: string, updateId: string) => void;
-  tipoCrimes: string[];
-  addTipoCrime: (value: string) => void;
-  removeTipoCrime: (value: string) => void;
-  editTipoCrime: (oldValue: string, newValue: string) => void;
-  comarcasVaras: string[];
-  addComarcaVara: (value: string) => void;
-  removeComarcaVara: (value: string) => void;
-  editComarcaVara: (oldValue: string, newValue: string) => void;
-  situacoesPrisionais: string[];
-  addSituacaoPrisional: (value: string) => void;
-  removeSituacaoPrisional: (value: string) => void;
-  editSituacaoPrisional: (oldValue: string, newValue: string) => void;
+  tipoCrimes: Entity[];
+  addTipoCrime: (value: string) => Promise<void>;
+  removeTipoCrime: (id: number) => Promise<void>;
+  editTipoCrime: (id: number, value: string) => Promise<void>;
+  comarcasVaras: Entity[];
+  addComarcaVara: (value: string) => Promise<void>;
+  removeComarcaVara: (id: number) => Promise<void>;
+  editComarcaVara: (id: number, value: string) => Promise<void>;
+  situacoesPrisionais: Entity[];
+  addSituacaoPrisional: (value: string) => Promise<void>;
+  removeSituacaoPrisional: (id: number) => Promise<void>;
+  editSituacaoPrisional: (id: number, value: string) => Promise<void>;
 }

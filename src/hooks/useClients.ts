@@ -70,7 +70,7 @@ export function useClients(user: User | null) {
 
       const updatedClient: Client = {
       ...currentClient,
-      accessKey: currentClient.accesskey, // 👈 coloca antes para garantir que não seja sobrescrito
+      accessKey: currentClient.accessKey, // 👈 coloca antes para garantir que não seja sobrescrito
       ...updates,
       updatedAt: new Date().toISOString(),
 };

@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { storageService, storageMode } from '@/components/storage_service/storageService';
-
-type Entity = { id: number; name: string };
+import { Entity } from '@/types/auth.types';
 
 export function useEntities() {
   const [tipoCrimes, setTipoCrimes] = useState<Entity[]>([]);
@@ -10,13 +9,25 @@ export function useEntities() {
 
   const fetchAll = async () => {
     if (storageMode === 'api') {
-      setTipoCrimes(await storageService.getItem('tiposCrime'));
-      setComarcasVaras(await storageService.getItem('comarcasVaras'));
-      setSituacoesPrisionais(await storageService.getItem('situacoesPrisionais'));
+      try {
+        const tipoCrimesData = await storageService.getItem('tiposCrime');
+        const comarcasVarasData = await storageService.getItem('comarcasVaras');
+        const situacoesPrisionaisData = await storageService.getItem('situacoesPrisionais');
+        
+        setTipoCrimes(Array.isArray(tipoCrimesData) ? tipoCrimesData : []);
+        setComarcasVaras(Array.isArray(comarcasVarasData) ? comarcasVarasData : []);
+        setSituacoesPrisionais(Array.isArray(situacoesPrisionaisData) ? situacoesPrisionaisData : []);
+      } catch (error) {
+        console.error('Error loading entities:', error);
+      }
     } else {
-      setTipoCrimes(storageService.getItem('tipoCrimes') || []);
-      setComarcasVaras(storageService.getItem('comarcasVaras') || []);
-      setSituacoesPrisionais(storageService.getItem('situacoesPrisionais') || []);
+      const tipoCrimesLocal = storageService.getItem('tipoCrimes') || [];
+      const comarcasVarasLocal = storageService.getItem('comarcasVaras') || [];
+      const situacoesPrisionaisLocal = storageService.getItem('situacoesPrisionais') || [];
+      
+      setTipoCrimes(Array.isArray(tipoCrimesLocal) ? tipoCrimesLocal : []);
+      setComarcasVaras(Array.isArray(comarcasVarasLocal) ? comarcasVarasLocal : []);
+      setSituacoesPrisionais(Array.isArray(situacoesPrisionaisLocal) ? situacoesPrisionaisLocal : []);
     }
   };
 
@@ -41,7 +52,7 @@ export function useEntities() {
   const removeEntity = async (type: string, id: number, set: any, list: Entity[]) => {
   if (storageMode === 'api') {
     // Tenta remover do backend primeiro
-    await storageService.deleteItem(type, id);
+    await storageService.deleteItem(type, id.toString());
     // Se sucesso, atualiza o estado local
     const updated = list.filter((e) => e.id !== id);
     set(updated);
@@ -59,7 +70,7 @@ export function useEntities() {
     const updated = list.map((e) => (e.id === id ? { ...e, name: newValue } : e));
     set(updated);
     if (storageMode === 'api') {
-      await storageService.updateItem(type, id, { name: newValue });
+      await storageService.updateItem(type, id.toString(), { name: newValue });
     } else {
       storageService.setItem(type, updated);
     }

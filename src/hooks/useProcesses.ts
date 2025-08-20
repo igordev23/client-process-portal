@@ -40,8 +40,8 @@ export function useProcesses(user: User | null) {
 
   const newProcess: Process = {
     ...processData,
-    startdate: localIso,
-    lastupdate: localIso,
+    startDate: localIso,
+    lastUpdate: localIso,
     id: Date.now().toString(),
     updates: [],
   };
@@ -58,7 +58,7 @@ export function useProcesses(user: User | null) {
 
     toast({
       title: 'Processo cadastrado',
-      description: `Processo ${newProcess.processnumber} foi cadastrado com sucesso.`,
+      description: `Processo ${newProcess.processNumber} foi cadastrado com sucesso.`,
     });
   } catch (error) {
     console.error('Erro ao cadastrar processo:', error);

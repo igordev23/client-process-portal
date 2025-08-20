@@ -2,24 +2,27 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useAuth } from '@/contexts/AuthContext';
 import { ClientManagement } from './ClientManagement';
 import { ProcessManagement } from './process/ProcessManagement';
 import { ManageEntities } from './ManageEntities';
 import { fixEncodingManual } from '@/utils/fixEncodingManual';
 import { toSnakeCase } from '@/utils/caseConverter';
-
-
+import { Menu, LogOut } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
+// Logo placeholder - will use SVG icon
+const legalControlLogo = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiByeD0iOCIgZmlsbD0iIzMzNzNkYyIvPgo8cGF0aCBkPSJNMTIgMTJoMTZ2MTZIMTJ6IiBmaWxsPSJ3aGl0ZSIgZmlsbC1vcGFjaXR5PSIwLjIiLz4KPHN2ZyB4PSI4IiB5PSI4IiB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSI+CjxwYXRoIGQ9Ik0xNyA5VjdBMiAyIDAgMCAwIDE1IDVIOUEyIDIgMCAwIDAgNyA3VjlBMiAyIDAgMCAwIDUgMTFWMTlBMiAyIDAgMCAwIDcgMjFIMTdBMiAyIDAgMCAwIDE5IDE5VjExQTIgMiAwIDAgMCAxNyA5WiIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KPHBhdGggZD0iTTkgN1Y1QTIgMiAwIDAgMSAxMSAzSDEzQTIgMiAwIDAgMSAxNSA1VjciIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+Cjwvc3ZnPgo8L3N2Zz4K";
 
 const tabs = ['dashboard', 'clients', 'processes', 'manage'] as const;
 type TabType = typeof tabs[number];
-
-
 
 export function Dashboard() {
 const { user, logout, clients, processes } = useAuth();
 const filteredProcesses = processes.filter(p => !(p as any).deleted);
 const [activeTab, setActiveTab] = useState<TabType>('dashboard');
+const [isMenuOpen, setIsMenuOpen] = useState(false);
+const isMobile = useIsMobile();
 
 const getStatusColor = (status: string) => {
   switch (status) {
@@ -72,87 +75,190 @@ return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center space-x-2 sm:space-x-4">
-            <div className="p-2 bg-blue-500 rounded-lg">
-              <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V5a2 2 0 012-2h4a2 2 0 012 2v2" />
-              </svg>
-            </div>
+            <img 
+              src={legalControlLogo} 
+              alt="LegalControl" 
+              className="w-8 h-8 sm:w-10 sm:h-10"
+            />
             <div>
-              <h1 className="text-lg sm:text-xl font-semibold text-gray-900">Sistema Jurídico</h1>
-              <p className="text-xs sm:text-sm text-gray-500 hidden sm:block">Gestão de Processos</p>
+              <h1 className="text-lg sm:text-xl font-semibold text-gray-900">LegalControl</h1>
+              <p className="text-xs sm:text-sm text-gray-500 hidden sm:block">Sistema Jurídico</p>
             </div>
           </div>
           
           <div className="flex items-center space-x-2 sm:space-x-4">
-            <div className="text-right hidden sm:block">
-              <p className="text-sm font-medium text-gray-900">
-                {fixEncodingManual(user?.name)}
-              </p>
-              <p className="text-xs text-gray-500 capitalize">{user?.role === 'admin' ? 'Administrador' : 'Funcionário'}</p>
-            </div>
-            <Button
-              variant="outline"
-              onClick={logout}
-              className="text-sm"
-              size="sm"
-            >
-              <span className="hidden sm:inline">Sair</span>
-              <span className="sm:hidden">🚪</span>
-            </Button>
+            {!isMobile && (
+              <>
+                <div className="text-right">
+                  <p className="text-sm font-medium text-gray-900">
+                    {fixEncodingManual(user?.name)}
+                  </p>
+                  <p className="text-xs text-gray-500 capitalize">{user?.role === 'admin' ? 'Administrador' : 'Funcionário'}</p>
+                </div>
+                <Button
+                  variant="outline"
+                  onClick={logout}
+                  className="text-sm"
+                  size="sm"
+                >
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Sair
+                </Button>
+              </>
+            )}
+            
+            {isMobile && (
+              <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
+                <SheetTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    <Menu className="w-4 h-4" />
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="right" className="w-64">
+                  <div className="flex flex-col space-y-4 pt-6">
+                    <div className="flex items-center space-x-3 pb-4 border-b">
+                      <img 
+                        src={legalControlLogo} 
+                        alt="LegalControl" 
+                        className="w-8 h-8"
+                      />
+                      <div>
+                        <p className="font-medium text-gray-900">
+                          {fixEncodingManual(user?.name)}
+                        </p>
+                        <p className="text-xs text-gray-500 capitalize">
+                          {user?.role === 'admin' ? 'Administrador' : 'Funcionário'}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <button
+                      onClick={() => {
+                        setActiveTab('dashboard');
+                        setIsMenuOpen(false);
+                      }}
+                      className={`py-3 px-4 text-left rounded-lg transition-colors ${
+                        activeTab === 'dashboard'
+                          ? 'bg-blue-100 text-blue-700 font-medium'
+                          : 'text-gray-700 hover:bg-gray-100'
+                      }`}
+                    >
+                      Dashboard
+                    </button>
+                    
+                    <button
+                      onClick={() => {
+                        setActiveTab('clients');
+                        setIsMenuOpen(false);
+                      }}
+                      className={`py-3 px-4 text-left rounded-lg transition-colors ${
+                        activeTab === 'clients'
+                          ? 'bg-blue-100 text-blue-700 font-medium'
+                          : 'text-gray-700 hover:bg-gray-100'
+                      }`}
+                    >
+                      Clientes
+                    </button>
+                    
+                    <button
+                      onClick={() => {
+                        setActiveTab('processes');
+                        setIsMenuOpen(false);
+                      }}
+                      className={`py-3 px-4 text-left rounded-lg transition-colors ${
+                        activeTab === 'processes'
+                          ? 'bg-blue-100 text-blue-700 font-medium'
+                          : 'text-gray-700 hover:bg-gray-100'
+                      }`}
+                    >
+                      Processos
+                    </button>
+                    
+                    <button
+                      onClick={() => {
+                        setActiveTab('manage');
+                        setIsMenuOpen(false);
+                      }}
+                      className={`py-3 px-4 text-left rounded-lg transition-colors ${
+                        activeTab === 'manage'
+                          ? 'bg-blue-100 text-blue-700 font-medium'
+                          : 'text-gray-700 hover:bg-gray-100'
+                      }`}
+                    >
+                      Configurações
+                    </button>
+                    
+                    <div className="pt-4 border-t">
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          logout();
+                          setIsMenuOpen(false);
+                        }}
+                        className="w-full justify-start"
+                      >
+                        <LogOut className="w-4 h-4 mr-2" />
+                        Sair
+                      </Button>
+                    </div>
+                  </div>
+                </SheetContent>
+              </Sheet>
+            )}
           </div>
         </div>
       </div>
     </header>
 
-    {/* Navigation */}
-    <nav className="bg-white border-b">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex overflow-x-auto scrollbar-hide">
-          <button
-            onClick={() => setActiveTab('dashboard')}
-            className={`py-4 px-3 border-b-2 font-medium text-sm whitespace-nowrap ${
-              activeTab === 'dashboard'
-                ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
-          >
-            Dashboard
-          </button>
-          <button
-            onClick={() => setActiveTab('clients' as TabType)}
-            className={`py-4 px-3 border-b-2 font-medium text-sm whitespace-nowrap ${
-              activeTab === 'dashboard'
-                ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
-          >
-            Clientes
-          </button>
-          <button
-            onClick={() => setActiveTab('processes' as TabType)}
-            className={`py-4 px-3 border-b-2 font-medium text-sm whitespace-nowrap ${
-              activeTab === 'dashboard'
-                ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
-          >
-            Processos
-          </button>
-          <button
-            onClick={() => setActiveTab('manage' as TabType)}
-            className={`py-4 px-3 border-b-2 font-medium text-sm whitespace-nowrap ${
-              activeTab === 'dashboard'
-                ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
-          >
-            <span className="hidden sm:inline">Configurações de Cadastro</span>
-            <span className="sm:hidden">Config</span>
-          </button>
+    {/* Navigation - Hidden on mobile */}
+    {!isMobile && (
+      <nav className="bg-white border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex overflow-x-auto scrollbar-hide">
+            <button
+              onClick={() => setActiveTab('dashboard')}
+              className={`py-4 px-3 border-b-2 font-medium text-sm whitespace-nowrap ${
+                activeTab === 'dashboard'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              Dashboard
+            </button>
+            <button
+              onClick={() => setActiveTab('clients' as TabType)}
+              className={`py-4 px-3 border-b-2 font-medium text-sm whitespace-nowrap ${
+                activeTab === 'clients'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              Clientes
+            </button>
+            <button
+              onClick={() => setActiveTab('processes' as TabType)}
+              className={`py-4 px-3 border-b-2 font-medium text-sm whitespace-nowrap ${
+                activeTab === 'processes'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              Processos
+            </button>
+            <button
+              onClick={() => setActiveTab('manage' as TabType)}
+              className={`py-4 px-3 border-b-2 font-medium text-sm whitespace-nowrap ${
+                activeTab === 'manage'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              Configurações de Cadastro
+            </button>
+          </div>
         </div>
-      </div>
-    </nav>
+      </nav>
+    )}
 
     {/* Main Content */}
     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -232,8 +338,8 @@ return (
   {filteredProcesses.length === 0 ? (
     <p className="text-center text-gray-500">Nenhum processo encontrado.</p>
   ) : (
-    <div className="space-y-4">
-      {filteredProcesses.slice(0, 5).map((process, index) => {
+    <div className="space-y-4 max-h-80 overflow-y-auto">
+      {filteredProcesses.slice(0, 4).map((process, index) => {
         const client = clients.find(c => c.id === process.clientId);
         return (
           <div key={process.id || `process-${index}`} className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 border rounded-lg space-y-2 sm:space-y-0">
@@ -269,8 +375,8 @@ return (
   {clients.length === 0 ? (
     <p className="text-center text-gray-500">Nenhum cliente encontrado.</p>
   ) : (
-    <div className="space-y-4">
-      {clients.slice(0, 5).map((client, index) => (
+    <div className="space-y-4 max-h-80 overflow-y-auto">
+      {clients.slice(0, 4).map((client, index) => (
         <div key={client.id || `client-${index}`} className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 border rounded-lg space-y-2 sm:space-y-0">
           <div className="flex-1">
             <h4 className="font-medium text-sm">{client.name}</h4>
@@ -279,10 +385,10 @@ return (
           </div>
           <div className="flex sm:flex-col sm:text-right justify-between sm:justify-end items-center sm:items-end">
             <p className="text-xs font-mono bg-gray-100 px-2 py-1 rounded">
-              {client.accesskey}
+              {client.accessKey}
             </p>
             <p className="text-xs text-gray-400 sm:mt-1">
-              {new Date(client.createdat).toLocaleDateString('pt-BR')}
+              {new Date(client.createdAt).toLocaleDateString('pt-BR')}
             </p>
           </div>
         </div>

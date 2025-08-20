@@ -9,7 +9,7 @@ export function exportProcessesToExcel(processes: Process[], clients: Client[]) 
   }
 
   const data = processes.map(proc => {
-    const client = clients.find(c => c.id === proc.clientid);
+    const client = clients.find(c => c.id === proc.clientId);
 
     const updatesText = (proc.updates || [])
       .map(update => {
@@ -22,11 +22,11 @@ export function exportProcessesToExcel(processes: Process[], clients: Client[]) 
     return {
       'Título': proc.title,
       'Status': translateStatus(proc.status),
-      'Número do Processo': proc.processnumber,
+      'Número do Processo': proc.processNumber,
       'Cliente': `${client?.name || 'Desconhecido'} (${client?.cpf || '-'})`,
       'Advogado': proc.lawyer || '—',
-      'Início': formatDate(proc.startdate),
-      'Última Atualização': formatDate(proc.lastupdate),
+      'Início': formatDate(proc.startDate),
+      'Última Atualização': formatDate(proc.lastUpdate),
       'Situação Prisional': proc.situacaoPrisional || '—',
       'Comarca / Vara': proc.comarcaVara || '—',
       'Tipo de Crime': proc.tipoCrime || '—',

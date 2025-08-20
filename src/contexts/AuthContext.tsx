@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { storageService } from '@/components/storage_service/storageService';
 import { localStorageDriver } from '@/components/storage_service/localStorageDriver';
 import { toCamelCase } from '@/components/ui/caseConverter';
-import { AuthContextType, User, Process } from '@/types/auth.types';
+import { AuthContextType, User, Process, Client, Entity } from '@/types/auth.types';
 
 import { initialUsers, initialClients, initialProcesses } from '@/data/initialData';
 import { useAuthLogic } from '@/hooks/useAuth';
@@ -12,7 +12,7 @@ import { useEntities } from '@/hooks/useEntities';
 import { useProcessUpdates } from '@/hooks/useProcessUpdates';
 import { fixEncodingManual, fixUsersEncoding } from '@/utils/fixEncodingManual';
 
-export type { Process };
+export type { Process, Client };
 export type { ProcessUpdate } from '@/types/auth.types';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -58,9 +58,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       clientsLogic.setClients(storedClients);
       processesLogic.setProcesses(storedProcesses);
       setUsers(fixedUsers);
-      entitiesLogic.setTipoCrimes(storedTipoCrimes);
-      entitiesLogic.setComarcasVaras(storedComarcasVaras);
-      entitiesLogic.setSituacoesPrisionais(storedSituacoesPrisionais);
+      // Entity data is handled by useEntities hook
     }
 
     loadData();
