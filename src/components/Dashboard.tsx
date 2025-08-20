@@ -71,32 +71,34 @@ return (
     <header className="bg-white shadow-sm border-b">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 sm:space-x-4">
             <div className="p-2 bg-blue-500 rounded-lg">
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V5a2 2 0 012-2h4a2 2 0 012 2v2" />
               </svg>
             </div>
             <div>
-              <h1 className="text-xl font-semibold text-gray-900">Sistema Jurídico</h1>
-              <p className="text-sm text-gray-500">Gestão de Processos</p>
+              <h1 className="text-lg sm:text-xl font-semibold text-gray-900">Sistema Jurídico</h1>
+              <p className="text-xs sm:text-sm text-gray-500 hidden sm:block">Gestão de Processos</p>
             </div>
           </div>
           
-          <div className="flex items-center space-x-4">
-            <div className="text-right">
-<p className="text-sm font-medium text-gray-900">
-{fixEncodingManual(user?.name)}
-</p>
+          <div className="flex items-center space-x-2 sm:space-x-4">
+            <div className="text-right hidden sm:block">
+              <p className="text-sm font-medium text-gray-900">
+                {fixEncodingManual(user?.name)}
+              </p>
               <p className="text-xs text-gray-500 capitalize">{user?.role === 'admin' ? 'Administrador' : 'Funcionário'}</p>
             </div>
             <Button
               variant="outline"
               onClick={logout}
               className="text-sm"
+              size="sm"
             >
-              Sair
+              <span className="hidden sm:inline">Sair</span>
+              <span className="sm:hidden">🚪</span>
             </Button>
           </div>
         </div>
@@ -106,10 +108,10 @@ return (
     {/* Navigation */}
     <nav className="bg-white border-b">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex space-x-8">
+        <div className="flex overflow-x-auto scrollbar-hide">
           <button
             onClick={() => setActiveTab('dashboard')}
-            className={`py-4 px-1 border-b-2 font-medium text-sm ${
+            className={`py-4 px-3 border-b-2 font-medium text-sm whitespace-nowrap ${
               activeTab === 'dashboard'
                 ? 'border-blue-500 text-blue-600'
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
@@ -119,8 +121,8 @@ return (
           </button>
           <button
             onClick={() => setActiveTab('clients' as TabType)}
-            className={`py-4 px-1 border-b-2 font-medium text-sm ${
-              activeTab === 'clients'
+            className={`py-4 px-3 border-b-2 font-medium text-sm whitespace-nowrap ${
+              activeTab === 'dashboard'
                 ? 'border-blue-500 text-blue-600'
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
             }`}
@@ -129,8 +131,8 @@ return (
           </button>
           <button
             onClick={() => setActiveTab('processes' as TabType)}
-            className={`py-4 px-1 border-b-2 font-medium text-sm ${
-              activeTab === 'processes'
+            className={`py-4 px-3 border-b-2 font-medium text-sm whitespace-nowrap ${
+              activeTab === 'dashboard'
                 ? 'border-blue-500 text-blue-600'
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
             }`}
@@ -139,13 +141,14 @@ return (
           </button>
           <button
             onClick={() => setActiveTab('manage' as TabType)}
-            className={`py-4 px-1 border-b-2 font-medium text-sm ${
-              activeTab === 'manage'
+            className={`py-4 px-3 border-b-2 font-medium text-sm whitespace-nowrap ${
+              activeTab === 'dashboard'
                 ? 'border-blue-500 text-blue-600'
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
             }`}
           >
-            Configurações de Cadastro
+            <span className="hidden sm:inline">Configurações de Cadastro</span>
+            <span className="sm:hidden">Config</span>
           </button>
         </div>
       </div>
@@ -233,17 +236,17 @@ return (
       {filteredProcesses.slice(0, 5).map((process, index) => {
         const client = clients.find(c => c.id === process.clientId);
         return (
-          <div key={process.id || `process-${index}`} className="flex items-center justify-between p-4 border rounded-lg">
+          <div key={process.id || `process-${index}`} className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 border rounded-lg space-y-2 sm:space-y-0">
             <div className="flex-1">
               <h4 className="font-medium text-sm">{process.title}</h4>
               <p className="text-xs text-gray-500">{client?.name}</p>
               <p className="text-xs text-gray-400">{process.processNumber}</p>
             </div>
-            <div className="text-right">
+            <div className="flex sm:flex-col sm:text-right justify-between sm:justify-end items-center sm:items-end">
               <Badge className={`text-xs ${getStatusColor(process.status)}`}>
                 {getStatusText(process.status)}
               </Badge>
-              <p className="text-xs text-gray-400 mt-1">
+              <p className="text-xs text-gray-400 sm:mt-1">
                 {new Date(process.lastUpdate).toLocaleDateString('pt-BR')}
               </p>
             </div>
@@ -268,17 +271,17 @@ return (
   ) : (
     <div className="space-y-4">
       {clients.slice(0, 5).map((client, index) => (
-        <div key={client.id || `client-${index}`} className="flex items-center justify-between p-4 border rounded-lg">
+        <div key={client.id || `client-${index}`} className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 border rounded-lg space-y-2 sm:space-y-0">
           <div className="flex-1">
             <h4 className="font-medium text-sm">{client.name}</h4>
             <p className="text-xs text-gray-500">{client.cpf}</p>
-            <p className="text-xs text-gray-400">{client.email}</p>
+            <p className="text-xs text-gray-400 truncate">{client.email}</p>
           </div>
-          <div className="text-right">
+          <div className="flex sm:flex-col sm:text-right justify-between sm:justify-end items-center sm:items-end">
             <p className="text-xs font-mono bg-gray-100 px-2 py-1 rounded">
               {client.accesskey}
             </p>
-            <p className="text-xs text-gray-400 mt-1">
+            <p className="text-xs text-gray-400 sm:mt-1">
               {new Date(client.createdat).toLocaleDateString('pt-BR')}
             </p>
           </div>

@@ -137,37 +137,47 @@ export function ProcessCard({
             </div>
           </div>
 
-          <div className="flex flex-col space-y-2 lg:ml-4">
-            <Select value={process.status} onValueChange={onStatusChange}>
-              <SelectTrigger className="w-full lg:w-48">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="pending">Pendente</SelectItem>
-                <SelectItem value="active">Em Andamento</SelectItem>
-                <SelectItem value="completed">Concluído</SelectItem>
-                <SelectItem value="cancelled">Cancelado</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="flex flex-col space-y-2 w-full lg:w-auto lg:ml-4">
+            <div className="w-full lg:w-48">
+              <Select value={process.status} onValueChange={onStatusChange}>
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pending">Pendente</SelectItem>
+                  <SelectItem value="active">Em Andamento</SelectItem>
+                  <SelectItem value="completed">Concluído</SelectItem>
+                  <SelectItem value="cancelled">Cancelado</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-            <Button variant="secondary" size="sm" onClick={onEdit} className="w-full lg:w-48">
-              Editar Processo
-            </Button>
-               <Button variant="outline" size="sm" onClick={onAddUpdate} className="w-full lg:w-48">
-              Adicionar Atualização
-            </Button>
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={() => {
-                if (confirm('Tem certeza que deseja excluir este processo?')) {
-                  onDelete();
-                }
-              }}
-              className="w-full lg:w-48"
-            >
-              Excluir
-            </Button>
+            <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-2 w-full lg:w-48">
+              <Button variant="secondary" size="sm" onClick={onEdit} className="w-full">
+                <span className="hidden sm:inline lg:hidden">Editar</span>
+                <span className="sm:hidden lg:inline">Editar Processo</span>
+                <Pencil className="w-4 h-4 sm:hidden lg:hidden" />
+              </Button>
+              <Button variant="outline" size="sm" onClick={onAddUpdate} className="w-full">
+                <span className="hidden sm:inline lg:hidden">Atualizar</span>
+                <span className="sm:hidden lg:inline">Adicionar Atualização</span>
+                <span className="sm:hidden lg:hidden">+</span>
+              </Button>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={() => {
+                  if (confirm('Tem certeza que deseja excluir este processo?')) {
+                    onDelete();
+                  }
+                }}
+                className="w-full"
+              >
+                <span className="hidden sm:inline lg:hidden">Excluir</span>
+                <span className="sm:hidden lg:inline">Excluir</span>
+                <Trash2 className="w-4 h-4 sm:hidden lg:hidden" />
+              </Button>
+            </div>
           </div>
         </div>
       </CardContent>

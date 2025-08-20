@@ -142,20 +142,22 @@ export function ManageEntities({ onBack }: { onBack: () => void }) {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6 max-w-4xl mx-auto">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-800">Configurações de Cadastro</h2>
-        <Button variant="outline" onClick={onBack}>
-          Dashboard
+    <div className="min-h-screen bg-gray-50 p-4 sm:p-6 max-w-4xl mx-auto">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 space-y-2 sm:space-y-0">
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-800">Configurações de Cadastro</h2>
+        <Button variant="outline" onClick={onBack} size="sm">
+          ← Dashboard
         </Button>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-4 mb-4">
+      <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 mb-4">
         {(['tipoCrime', 'comarcaVara', 'situacaoPrisional'] as EntityType[]).map((tab) => (
           <Button
             key={tab}
             variant={activeTab === tab ? 'default' : 'outline'}
+            size="sm"
+            className="text-xs sm:text-sm"
             onClick={() => {
               setActiveTab(tab);
               setEditId(null);
@@ -186,52 +188,56 @@ export function ManageEntities({ onBack }: { onBack: () => void }) {
         <CardContent className="space-y-2">
           {/* Campo de novo item - só aparece se não estiver editando */}
           {editId === null && (
-            <div className="flex items-center gap-2 mb-2">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 mb-2">
               <Input
                 placeholder="Novo item..."
                 value={editValue}
                 onChange={(e) => setEditValue(e.target.value)}
                 className="flex-1"
               />
-              <Button onClick={handleAdd}>Adicionar</Button>
+              <Button onClick={handleAdd} size="sm">Adicionar</Button>
             </div>
           )}
 
           {/* Lista de itens */}
           {filteredList.length > 0 ? (
             filteredList.map((item) => (
-              <div key={item.id} className="flex items-center gap-2">
+              <div key={item.id} className="flex flex-col sm:flex-row sm:items-center gap-2 p-2 border rounded">
                 {editId === item.id ? (
                   <>
                     <Input
                       value={editValue}
                       onChange={(e) => setEditValue(e.target.value)}
-                      className="flex-1"
+                      className="flex-1 mb-2 sm:mb-0"
                     />
-                    <Button onClick={handleSave}>Salvar</Button>
-                    <Button variant="outline" onClick={() => setEditId(null)}>
-                      Cancelar
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button onClick={handleSave} size="sm">Salvar</Button>
+                      <Button variant="outline" onClick={() => setEditId(null)} size="sm">
+                        Cancelar
+                      </Button>
+                    </div>
                   </>
                 ) : (
                   <>
-                    <span className="flex-1 text-sm text-gray-800">{item.name}</span>
-                    <Button
-                      size="sm"
-                      onClick={() => {
-                        setEditId(item.id);
-                        setEditValue(item.name);
-                      }}
-                    >
-                      Editar
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      onClick={() => setIdToDelete(item.id)}
-                    >
-                      Excluir
-                    </Button>
+                    <span className="flex-1 text-sm text-gray-800 mb-2 sm:mb-0">{item.name}</span>
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        onClick={() => {
+                          setEditId(item.id);
+                          setEditValue(item.name);
+                        }}
+                      >
+                        Editar
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => setIdToDelete(item.id)}
+                      >
+                        Excluir
+                      </Button>
+                    </div>
                   </>
                 )}
               </div>
@@ -244,15 +250,15 @@ export function ManageEntities({ onBack }: { onBack: () => void }) {
 
       {/* Modal simples de confirmação */}
       {idToDelete !== null && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-          <div className="bg-white rounded p-6 max-w-sm w-full shadow-lg">
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 p-4">
+          <div className="bg-white rounded p-4 sm:p-6 max-w-sm w-full shadow-lg">
             <h3 className="text-lg font-semibold mb-4">Confirma exclusão?</h3>
-            <p className="mb-6">Tem certeza que deseja excluir este item?</p>
-            <div className="flex justify-end gap-4">
-              <Button variant="outline" onClick={() => setIdToDelete(null)}>
+            <p className="mb-6 text-sm">Tem certeza que deseja excluir este item?</p>
+            <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-4">
+              <Button variant="outline" onClick={() => setIdToDelete(null)} size="sm">
                 Cancelar
               </Button>
-              <Button variant="destructive" onClick={handleRemoveConfirmed}>
+              <Button variant="destructive" onClick={handleRemoveConfirmed} size="sm">
                 Excluir
               </Button>
             </div>
