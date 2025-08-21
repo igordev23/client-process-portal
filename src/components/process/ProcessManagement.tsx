@@ -25,6 +25,7 @@ export function ProcessManagement({ onBack }: { onBack: () => void }) {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [startDateFilter, setStartDateFilter] = useState<string>('');
 
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -51,22 +52,26 @@ export function ProcessManagement({ onBack }: { onBack: () => void }) {
   }
 
   const filteredProcesses = processes.filter((process) => {
-    if ((process as any).deleted) return false;
+  if ((process as any).deleted) return false;
 
-    const clientId = (process as any).clientid ?? process.clientId;
-    const client = clients.find((c) => String(c.id) === String(clientId));
+  const clientId = (process as any).clientid ?? process.clientId;
+  const client = clients.find((c) => String(c.id) === String(clientId));
 
-    const lowerSearch = searchTerm.toLowerCase();
-   const matchesSearch =
-  String(process.title ?? '').toLowerCase().includes(lowerSearch) ||
-  String(process.processNumber ?? '').toLowerCase().includes(lowerSearch) ||
-  String(client?.name ?? '').toLowerCase().includes(lowerSearch) ||
-  String(client?.cpf ?? '').includes(searchTerm);
+  const lowerSearch = searchTerm.toLowerCase();
+  const matchesSearch =
+    String(process.title ?? '').toLowerCase().includes(lowerSearch) ||
+    String(process.processNumber ?? '').toLowerCase().includes(lowerSearch) ||
+    String(client?.name ?? '').toLowerCase().includes(lowerSearch) ||
+    String(client?.cpf ?? '').includes(searchTerm);
 
+  const matchesStatus = statusFilter === 'all' || process.status === statusFilter;
 
-    const matchesStatus = statusFilter === 'all' || process.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
+  // ✅ Filtro por ano de início
+  const matchesYear =
+    !startDateFilter || (process.startdate ?? '').startsWith(startDateFilter); // compara apenas os 4 primeiros dígitos
+
+  return matchesSearch && matchesStatus && matchesYear;
+});
 
   const openEditDialog = (process: any) => {
     console.log('ProcessManagement - Abrindo diálogo de edição para o processo: ', process);
@@ -175,6 +180,8 @@ export function ProcessManagement({ onBack }: { onBack: () => void }) {
           onSearchChange={setSearchTerm}
           statusFilter={statusFilter}
           onStatusFilterChange={setStatusFilter}
+          startDateFilter={startDateFilter}
+          onStartDateFilterChange={setStartDateFilter} // novo
           onAddNew={() => {
             setSelectedProcess(null);
             setIsAddDialogOpen(true);
