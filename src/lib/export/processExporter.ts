@@ -1,5 +1,5 @@
 import * as XLSX from 'xlsx';
-import { Process} from '@/contexts/AuthContext';
+import { Process } from '@/contexts/AuthContext';
 import { Client } from '@/types/auth.types';
 
 export function exportProcessesToExcel(processes: Process[], clients: Client[]) {
@@ -9,27 +9,27 @@ export function exportProcessesToExcel(processes: Process[], clients: Client[]) 
   }
 
   const data = processes.map(proc => {
-    const client = clients.find(c => c.id === proc.clientId);
+    const client = clients.find(c => c.id === proc.clientid);
 
     const updatesText = (proc.updates || [])
       .map(update => {
         const user = update.author || 'Usuário'; 
         const date = formatDate(update.date);
-        return `${user} - ${date}\n${update.description}`;
+        return `${user} - ${date}\r\n${update.description}`;
       })
-      .join('\n\n');
+      .join('\r\n\r\n'); // Dupla quebra entre atualizações
 
     return {
       'Título': proc.title,
       'Status': translateStatus(proc.status),
-      'Número do Processo': proc.processNumber,
+      'Número do Processo': proc.processnumber,
       'Cliente': `${client?.name || 'Desconhecido'} (${client?.cpf || '-'})`,
       'Advogado': proc.lawyer || '—',
-      'Início': formatDate(proc.startDate),
-      'Última Atualização': formatDate(proc.lastUpdate),
-      'Situação Prisional': proc.situacaoPrisional || '—',
-      'Comarca / Vara': proc.comarcaVara || '—',
-      'Tipo de Crime': proc.tipoCrime || '—',
+      'Início': formatDate(proc.startdate),
+      'Última Atualização': formatDate(proc.lastupdate),
+      'Situação Prisional': proc.situacao_prisional || '—',
+      'Comarca / Vara': proc.comarca_vara || '—',
+      'Tipo de Crime': proc.tipo_crime || '—',
       'Descrição': proc.description || '',
       'Últimas Atualizações': updatesText,
     };
@@ -44,6 +44,18 @@ export function exportProcessesToExcel(processes: Process[], clients: Client[]) 
       ...data.map(row => (row[key]?.toString()?.length || 0))
     )
   }));
+
+  // Ativar wrapText para a coluna "Últimas Atualizações"
+  const range = XLSX.utils.decode_range(worksheet['!ref'] || '');
+  const updatesColumnIndex = Object.keys(data[0]).indexOf('Últimas Atualizações');
+  for (let R = range.s.r; R <= range.e.r; R++) {
+    const cellRef = XLSX.utils.encode_cell({ r: R, c: updatesColumnIndex });
+    const cell = worksheet[cellRef];
+    if (cell) {
+      if (!cell.s) cell.s = {};
+      cell.s.alignment = { wrapText: true };
+    }
+  }
 
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, worksheet, 'Processos');

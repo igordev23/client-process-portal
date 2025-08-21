@@ -111,7 +111,8 @@ export function ProcessForm({
 
     onSubmit({
       ...formData,
-      lastUpdate: formData.startDate
+      lastUpdate: formData.startDate,
+      startdate: formData.startDate  // adiciona esta linha
     });
     onOpenChange(false);
   };
