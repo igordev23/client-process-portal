@@ -19,6 +19,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [users, setUsers] = useState<User[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const isApiMode = import.meta.env.VITE_STORAGE_MODE === 'api';
 
   const authLogic = useAuthLogic();
@@ -29,9 +30,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     async function loadData() {
-      const storedUser = isApiMode
-        ? null
-        : await localStorageDriver.getItem<User | null>('currentUser', null);
+      // ✅ Carrega usuário salvo primeiro para evitar flash da tela de login
+      const storedUser = await localStorageDriver.getItem<User | null>('currentUser', null);
+      if (storedUser) {
+        authLogic.setUser(storedUser);
+      }
+      
+      setIsLoading(false);
 
       const rawClients = await storageService.getItem<any[]>('clients', initialClients);
       const rawProcesses = await storageService.getItem<any[]>('processes', initialProcesses);
@@ -54,7 +59,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const fixedUsers = fixUsersEncoding(storedUsers);
       console.log('loaded users (after fix):', fixedUsers);
 
-      authLogic.setUser(storedUser);
       clientsLogic.setClients(storedClients);
       processesLogic.setProcesses(storedProcesses);
       setUsers(fixedUsers);
@@ -71,6 +75,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     ...entitiesLogic,
     ...processUpdatesLogic,
     users,
+    isLoading,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

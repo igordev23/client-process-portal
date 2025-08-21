@@ -27,9 +27,9 @@ export function exportProcessesToExcel(processes: Process[], clients: Client[]) 
       'Advogado': proc.lawyer || '—',
       'Início': formatDate(proc.startdate),
       'Última Atualização': formatDate(proc.lastupdate),
-      'Situação Prisional': proc.situacao_prisional || '—',
-      'Comarca / Vara': proc.comarca_vara || '—',
-      'Tipo de Crime': proc.tipo_crime || '—',
+      'Situação Prisional': proc.situacaoPrisional || '—',
+      'Comarca / Vara': proc.comarcaVara || '—',
+      'Tipo de Crime': proc.tipoCrime || '—',
       'Descrição': proc.description || '',
       'Últimas Atualizações': updatesText,
     };
