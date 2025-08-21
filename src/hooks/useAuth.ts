@@ -36,9 +36,8 @@ export function useAuthLogic() {
       const fixedUser = { ...foundUser, name: fixEncodingManual(foundUser.name) };
       setUser(fixedUser);
 
-      if (!isApiMode) {
-        await localStorageDriver.setItem('currentUser', fixedUser);
-      }
+      // ✅ Sempre salva no localStorage para persistir login
+      await localStorageDriver.setItem('currentUser', fixedUser);
 
       toast({
         title: 'Login realizado com sucesso',
@@ -59,9 +58,8 @@ export function useAuthLogic() {
 
   const logout = () => {
     setUser(null);
-    if (!isApiMode) {
-      storageService.removeItem('currentUser');
-    }
+    // ✅ Sempre remove do localStorage
+    localStorageDriver.removeItem('currentUser');
     toast({ title: 'Logout realizado', description: 'Até logo!' });
   };
 

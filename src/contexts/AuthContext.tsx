@@ -29,9 +29,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     async function loadData() {
-      const storedUser = isApiMode
-        ? null
-        : await localStorageDriver.getItem<User | null>('currentUser', null);
+      // ✅ Sempre verifica localStorage para restaurar sessão persistente
+      const storedUser = await localStorageDriver.getItem<User | null>('currentUser', null);
 
       const rawClients = await storageService.getItem<any[]>('clients', initialClients);
       const rawProcesses = await storageService.getItem<any[]>('processes', initialProcesses);
