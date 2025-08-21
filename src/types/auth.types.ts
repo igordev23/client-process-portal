@@ -60,6 +60,7 @@ export interface AuthContextType {
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
   isAuthenticated: boolean;
+  isLoading: boolean;
   clients: Client[];
   processes: Process[];
   users: User[];
