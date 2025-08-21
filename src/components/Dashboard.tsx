@@ -11,7 +11,6 @@ import { fixEncodingManual } from '@/utils/fixEncodingManual';
 import { toSnakeCase } from '@/utils/caseConverter';
 import { Menu, LogOut } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { localStorageDriver } from '@/components/storage_service/localStorageDriver';
 // Logo placeholder - will use SVG icon
 const legalControlLogo = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiByeD0iOCIgZmlsbD0iIzMzNzNkYyIvPgo8cGF0aCBkPSJNMTIgMTJoMTZ2MTZIMTJ6IiBmaWxsPSJ3aGl0ZSIgZmlsbC1vcGFjaXR5PSIwLjIiLz4KPHN2ZyB4PSI4IiB5PSI4IiB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSI+CjxwYXRoIGQ9Ik0xNyA5VjdBMiAyIDAgMCAwIDE1IDVIOUEyIDIgMCAwIDAgNyA3VjlBMiAyIDAgMCAwIDUgMTFWMTlBMiAyIDAgMCAwIDcgMjFIMTdBMiAyIDAgMCAwIDE5IDE5VjExQTIgMiAwIDAgMCAxNyA5WiIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KPHBhdGggZD0iTTkgN1Y1QTIgMiAwIDAgMSAxMSAzSDEzQTIgMiAwIDAgMSAxNSA1VjciIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+Cjwvc3ZnPgo8L3N2Zz4K";
 
@@ -24,18 +23,6 @@ const filteredProcesses = processes.filter(p => !(p as any).deleted);
 const [activeTab, setActiveTab] = useState<TabType>('dashboard');
 const [isMenuOpen, setIsMenuOpen] = useState(false);
 const isMobile = useIsMobile();
-
-// ✅ Persiste a aba atual no localStorage
-useEffect(() => {
-  // Restaura aba salva ao carregar
-  const savedTab = localStorageDriver.getItem<TabType>('activeTab', 'dashboard');
-  savedTab.then(tab => setActiveTab(tab));
-}, []);
-
-useEffect(() => {
-  // Salva aba atual quando mudar
-  localStorageDriver.setItem('activeTab', activeTab);
-}, [activeTab]);
 
 const getStatusColor = (status: string) => {
   switch (status) {

@@ -6,13 +6,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 interface ProcessFilterProps {
   searchTerm: string;
   onSearchChange: (term: string) => void;
-
   statusFilter: string;
   onStatusFilterChange: (status: string) => void;
-
-  startDateFilter: string;
-  onStartDateFilterChange: (date: string) => void;
-
   onAddNew: () => void;
   onBack: () => void;
   onExport: () => void;
@@ -23,16 +18,12 @@ export function ProcessFilter({
   onSearchChange,
   statusFilter,
   onStatusFilterChange,
-
-  startDateFilter,
-  onStartDateFilterChange,
   onAddNew,
   onBack,
   onExport,
 }: ProcessFilterProps) {
   return (
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-      {/* Cabeçalho e botão voltar */}
       <div className="flex items-center space-x-4">
         <Button variant="ghost" onClick={onBack} className="p-2">
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -42,9 +33,7 @@ export function ProcessFilter({
         <h2 className="text-xl font-semibold text-gray-900">Gestão de Processos</h2>
       </div>
 
-      {/* Filtros e ações */}
       <div className="flex flex-1 flex-col sm:flex-row sm:items-center gap-4">
-        {/* Busca por título, número ou cliente */}
         <Input
           placeholder="Pesquisar por título, número ou cliente..."
           value={searchTerm}
@@ -52,7 +41,6 @@ export function ProcessFilter({
           className="flex-1"
         />
 
-        {/* Filtro de Status */}
         <Select value={statusFilter} onValueChange={onStatusFilterChange}>
           <SelectTrigger className="w-full sm:w-48">
             <SelectValue placeholder="Status" />
@@ -66,18 +54,6 @@ export function ProcessFilter({
           </SelectContent>
         </Select>
 
-        {/* Filtro de Ano de Início */}
-        <Input
-          type="number"
-          placeholder="Ano de início"
-          value={startDateFilter}
-          onChange={(e) => onStartDateFilterChange(e.target.value)}
-          className="w-full sm:w-32"
-          min={1900}
-          max={2100}
-        />
-
-        {/* Botões de ação */}
         <Button onClick={onAddNew} className="legal-gradient text-white">
           <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -92,6 +68,8 @@ export function ProcessFilter({
           Exportar
         </Button>
       </div>
+
+
     </div>
   );
 }
