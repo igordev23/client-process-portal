@@ -312,7 +312,7 @@ const handlePhoneChange = (phone: string) => {
                     type="email"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    required
+                    
                   />
                 </div>
                 <div className="space-y-2">
@@ -321,7 +321,7 @@ const handlePhoneChange = (phone: string) => {
                     id="edit-phone"
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    required
+                    
                   />
                 </div>
                 <div className="flex gap-2 pt-4">
