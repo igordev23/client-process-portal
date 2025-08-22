@@ -74,7 +74,7 @@ export function ClientDialogForm({ onSuccess }: Props) {
           type="email"
           value={formData.email}
           onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-          required
+          
         />
       </div>
 
@@ -87,7 +87,7 @@ export function ClientDialogForm({ onSuccess }: Props) {
           onChange={(e) =>
             setFormData({ ...formData, phone: handlePhoneChange(e.target.value) })
           }
-          required
+          
         />
       </div>
 
