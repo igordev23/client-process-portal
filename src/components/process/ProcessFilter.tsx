@@ -31,7 +31,8 @@ export function ProcessFilter({
   onExport,
 }: ProcessFilterProps) {
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+   <div className="sticky top-0 z-50 bg-white shadow border-b border-gray-200 p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+
       {/* Cabeçalho e botão voltar */}
       <div className="flex items-center space-x-4">
         <Button variant="ghost" onClick={onBack} className="p-2">

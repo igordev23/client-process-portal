@@ -133,7 +133,12 @@ export function ProcessCard({
 
             {/* Lista de atualizações limitadas a 4 com scroll */}
             <div className="mt-4 max-h-60 overflow-y-auto space-y-2 pr-2">
-              {process.updates.slice().slice(0, 4).map((update) => (
+                {process.updates
+                .slice()
+                .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()) // mais recentes primeiro
+                .slice(0, 4)
+                 // inverte a ordem dos 4 mais recentes
+                .map((update) => (
                 <div key={update.id} className="bg-gray-50 p-3 rounded-lg relative">
                   <div className="flex justify-between items-start mb-1">
                     <span className="text-xs font-medium text-gray-900">{update.author}</span>

@@ -13,7 +13,8 @@ import { Menu, LogOut } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { localStorageDriver } from '@/components/storage_service/localStorageDriver';
 // Logo placeholder - will use SVG icon
-const legalControlLogo = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiByeD0iOCIgZmlsbD0iIzMzNzNkYyIvPgo8cGF0aCBkPSJNMTIgMTJoMTZ2MTZIMTJ6IiBmaWxsPSJ3aGl0ZSIgZmlsbC1vcGFjaXR5PSIwLjIiLz4KPHN2ZyB4PSI4IiB5PSI4IiB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSI+CjxwYXRoIGQ9Ik0xNyA5VjdBMiAyIDAgMCAwIDE1IDVIOUEyIDIgMCAwIDAgNyA3VjlBMiAyIDAgMCAwIDUgMTFWMTlBMiAyIDAgMCAwIDcgMjFIMTdBMiAyIDAgMCAwIDE5IDE5VjExQTIgMiAwIDAgMCAxNyA5WiIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KPHBhdGggZD0iTTkgN1Y1QTIgMiAwIDAgMSAxMSAzSDEzQTIgMiAwIDAgMSAxNSA1VjciIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+Cjwvc3ZnPgo8L3N2Zz4K";
+import fotoperfil from "@/assets/fotoperfil.jpg";
+import legalControlLogo from "@/assets/legalcontrollogo.jpg";
 
 const tabs = ['dashboard', 'clients', 'processes', 'manage'] as const;
 type TabType = typeof tabs[number];
@@ -89,12 +90,12 @@ return (
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center space-x-2 sm:space-x-4">
             <img 
-              src={legalControlLogo} 
-              alt="LegalControl" 
-              className="w-8 h-8 sm:w-10 sm:h-10"
-            />
+  src={fotoperfil} 
+  alt="Foto de Perfil" 
+  className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover"
+/>
             <div>
-              <h1 className="text-lg sm:text-xl font-semibold text-gray-900">LegalControl</h1>
+              <h1 className="text-lg sm:text-xl font-semibold text-gray-900">Dra. Cristielle Medeiros</h1>
               <p className="text-xs sm:text-sm text-gray-500 hidden sm:block">Sistema Jurídico</p>
             </div>
           </div>
@@ -132,7 +133,7 @@ return (
                     <div className="flex items-center space-x-3 pb-4 border-b">
                       <img 
                         src={legalControlLogo} 
-                        alt="LegalControl" 
+                        alt="legalControlLogo" 
                         className="w-8 h-8"
                       />
                       <div>

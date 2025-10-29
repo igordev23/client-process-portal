@@ -1,7 +1,7 @@
 // src/components/storage_service/apiStorageDriver.ts
 import { StorageDriver } from './StorageDriver';
 
-const API_BASE = 'https://legal-control-server.onrender.com/sistema';
+const API_BASE = 'http://localhost:3000/sistema';
 
 export const apiStorageDriver: StorageDriver & {
   createItem?: <T>(key: string, value: T) => Promise<T>;
@@ -31,14 +31,28 @@ export const apiStorageDriver: StorageDriver & {
   },
 
   async createItem<T>(key: string, value: T): Promise<T> {
-    const res = await fetch(`${API_BASE}/${key}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(value),
-    });
-    if (!res.ok) throw new Error(`Erro ao criar item em ${key}`);
-    return res.json();
-  },
+  const res = await fetch(`${API_BASE}/${key}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(value),
+  });
+
+  if (!res.ok) {
+    let message = `Erro ao criar item em ${key}`;
+    try {
+      const data = await res.json();
+      if (data?.error) {
+        message = data.error;
+      }
+    } catch {
+      // mantém mensagem genérica
+    }
+    throw new Error(message);
+  }
+
+  return res.json();
+},
+
 
   async updateItem<T>(key: string, id: string, value: T): Promise<T> {
     const res = await fetch(`${API_BASE}/${key}/${id}`, {

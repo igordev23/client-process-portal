@@ -50,14 +50,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const storedProcesses = toCamelCase(rawProcesses);
       const storedUsers = toCamelCase(rawUsers);
 
-      console.log('loaded processes:', storedProcesses);
-      console.log('loaded user:', storedUser);
-      console.log('loaded clients:', storedClients);
-      console.log('loaded users (before fix):', storedUsers);
+     
 
       // Corrige caracteres corrompidos nos nomes dos usuários
       const fixedUsers = fixUsersEncoding(storedUsers);
-      console.log('loaded users (after fix):', fixedUsers);
+      
 
       clientsLogic.setClients(storedClients);
       processesLogic.setProcesses(storedProcesses);

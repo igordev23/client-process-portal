@@ -15,7 +15,7 @@ export function useAuthLogic() {
 
       if (isApiMode && storageService.getUserByEmailAndPassword) {
         foundUser = await storageService.getUserByEmailAndPassword(email, password);
-        console.log('Users dentro do useAuth:', user);
+        
       } else {
         const storedUsers = await storageService.getItem<User[]>('user', []);
         foundUser = storedUsers.find(

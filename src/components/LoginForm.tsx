@@ -1,10 +1,13 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/contexts/AuthContext';
+
+// Importando as imagens
+import LogoIniciais from '@/assets/Logoiniciais.jpg';
+import NomeEscritorio from '@/assets/nomeescritorio.jpg';
 
 export function LoginForm() {
   const [email, setEmail] = useState('');
@@ -28,13 +31,30 @@ export function LoginForm() {
       <div className="w-full max-w-md">
         <Card className="glass-effect shadow-xl">
           <CardHeader className="text-center pb-2">
-            <div className="mx-auto mb-4 p-3 bg-blue-500 rounded-full w-16 h-16 flex items-center justify-center">
-              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-              </svg>
+            {/* Logo Iniciais */}
+            <div className="mx-auto mb-4">
+              <img 
+                src={LogoIniciais} 
+                alt="Logo iniciais" 
+                className="mx-auto w-20 h-20 object-contain"
+              />
             </div>
-            <CardTitle className="text-2xl font-bold text-gray-900">Sistema Jurídico</CardTitle>
-            <CardDescription className="text-gray-600">
+
+            {/* Nome do sistema */}
+            <CardTitle className="text-2xl font-bold text-gray-900">
+              Legal Control
+            </CardTitle>
+
+            {/* Nome do escritório */}
+            <div className="mx-auto mt-2">
+              <img 
+                src={NomeEscritorio} 
+                alt="Nome do Escritório" 
+                className="mx-auto w-48 object-contain"
+              />
+            </div>
+
+            <CardDescription className="text-gray-600 mt-4">
               Faça login para acessar o sistema
             </CardDescription>
           </CardHeader>
@@ -75,14 +95,6 @@ export function LoginForm() {
                 {isLoading ? 'Entrando...' : 'Entrar'}
               </Button>
             </form>
-            
-            <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-              <p className="text-sm text-gray-600 mb-2 font-medium">Credenciais de teste:</p>
-              <div className="text-xs text-gray-500 space-y-1">
-                <p><strong>Admin:</strong> maria@escritorio.com / admin123</p>
-                <p><strong>Funcionário:</strong> joao@escritorio.com / func123</p>
-              </div>
-            </div>
           </CardContent>
         </Card>
       </div>

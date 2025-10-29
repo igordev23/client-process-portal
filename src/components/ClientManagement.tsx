@@ -15,7 +15,7 @@ interface ClientManagementProps {
 export function ClientManagement({ onBack }: ClientManagementProps) {
   const { clients, addClient, updateClient, deleteClient, user, users } = useAuth();
   // Log para conferir os dados dos clients no momento da renderização
-  console.log('Clients dentro do ClientManagement:', clients);
+  
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingClient, setEditingClient] = useState<Client | null>(null);
@@ -198,22 +198,26 @@ const handlePhoneChange = (phone: string) => {
       {/* Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Search */}
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle>Filtrar Clientes</CardTitle>
-            <CardDescription>
-              Busque por nome, CPF ou email
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Input
-              placeholder="Digite para pesquisar..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="max-w-md"
-            />
-          </CardContent>
-        </Card>
+      {/* Search (fixo no topo) */}
+<div className="sticky top-0 z-50 bg-white shadow-sm border border-gray-200 rounded-md mb-6">
+  <Card>
+    <CardHeader>
+      <CardTitle>Filtrar Clientes</CardTitle>
+      <CardDescription>
+        Busque por nome, CPF ou email
+      </CardDescription>
+    </CardHeader>
+    <CardContent>
+      <Input
+        placeholder="Digite para pesquisar..."
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        className="max-w-md"
+      />
+    </CardContent>
+  </Card>
+</div>
+
 
         {/* Client List */}
         <div className="grid gap-4">

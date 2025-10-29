@@ -1,14 +1,23 @@
+// src/components/storage_service/storageService.ts
 import { StorageDriver } from './StorageDriver';
 import { localStorageDriver } from './localStorageDriver';
 import { apiStorageDriver } from './apiStorageDriver';
-import { toCamelCase, toSnakeCase } from '@/components/ui//caseConverter';
-const mode = import.meta.env.VITE_STORAGE_MODE || 'local'; // 'local' ou 'api'
+import { staticDataDriver } from './staticDataDriver'; // ✅ novo driver para dados fixos
+import { toCamelCase, toSnakeCase } from '@/components/ui/caseConverter';
 
+// 🔀 Define o modo de operação: 'api', 'local' ou 'static'
+const mode = import.meta.env.VITE_STORAGE_MODE || 'static';
 export const storageMode = mode;
 
-const driver: StorageDriver = mode === 'api' ? apiStorageDriver : localStorageDriver;
+// Seleciona o driver de acordo com o modo
+const driver: StorageDriver =
+  mode === 'api'
+    ? apiStorageDriver
+    : mode === 'local'
+    ? localStorageDriver
+    : staticDataDriver;
 
-// Envolve métodos apenas no modo local com conversores
+// 🔁 Envolve os métodos com conversão de snake_case/camelCase no modo local
 function wrapWithConverters(driver: StorageDriver): StorageDriver {
   if (mode !== 'local') return driver;
 
@@ -49,19 +58,30 @@ function wrapWithConverters(driver: StorageDriver): StorageDriver {
 
 const wrappedDriver = wrapWithConverters(driver);
 
+// 🚀 Exporta o serviço pronto para uso em todo o app
 export const storageService = {
-  getItem: <T>(key: string, fallback?: T): Promise<T> => wrappedDriver.getItem<T>(key, fallback),
-  setItem: <T>(key: string, value: T): Promise<void> => wrappedDriver.setItem<T>(key, value),
+  getItem: <T>(key: string, fallback?: T): Promise<T> =>
+    wrappedDriver.getItem<T>(key, fallback),
+
+  setItem: <T>(key: string, value: T): Promise<void> =>
+    wrappedDriver.setItem<T>(key, value),
+
   removeItem: (key: string): Promise<void> => wrappedDriver.removeItem(key),
 
   createItem: <T>(collection: string, item: T) =>
-    wrappedDriver.createItem ? wrappedDriver.createItem<T>(collection, item) : Promise.reject(),
+    wrappedDriver.createItem
+      ? wrappedDriver.createItem<T>(collection, item)
+      : Promise.reject(),
 
   updateItem: <T>(collection: string, id: string, item: T) =>
-    wrappedDriver.updateItem ? wrappedDriver.updateItem<T>(collection, id, item) : Promise.reject(),
+    wrappedDriver.updateItem
+      ? wrappedDriver.updateItem<T>(collection, id, item)
+      : Promise.reject(),
 
   deleteItem: (collection: string, id: string) =>
-    wrappedDriver.deleteItem ? wrappedDriver.deleteItem(collection, id) : Promise.reject(),
+    wrappedDriver.deleteItem
+      ? wrappedDriver.deleteItem(collection, id)
+      : Promise.reject(),
 
   getUserByEmailAndPassword:
     'getUserByEmailAndPassword' in wrappedDriver
