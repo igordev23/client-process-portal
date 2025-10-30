@@ -2,7 +2,7 @@
 import { StorageDriver } from './StorageDriver';
 import { localStorageDriver } from './localStorageDriver';
 import { apiStorageDriver } from './apiStorageDriver';
-import { staticDataDriver } from './staticDataDriver'; // ✅ novo driver para dados fixos
+import { staticWithLocalDriver } from './staticWithLocalDriver';
 import { toCamelCase, toSnakeCase } from '@/components/ui/caseConverter';
 
 // 🔀 Define o modo de operação: 'api', 'local' ou 'static'
@@ -15,7 +15,7 @@ const driver: StorageDriver =
     ? apiStorageDriver
     : mode === 'local'
     ? localStorageDriver
-    : staticDataDriver;
+    : staticWithLocalDriver; // ✅ agora usa o driver híbrido
 
 // 🔁 Envolve os métodos com conversão de snake_case/camelCase no modo local
 function wrapWithConverters(driver: StorageDriver): StorageDriver {
