@@ -30,11 +30,17 @@ export function LoginForm() {
   const credenciais = [
     {
       id: '1',
-      name: 'teste',
-      email: 'teste@hotmail.com',
-      cpf: '123.456.789-00',
-      role: 'admin',
-      password: 'adm@123',
+      name: 'Dra. Maria Silva',
+      email: 'maria@escritorio.com',
+      role: 'Admin',
+      password: 'admin123',
+    },
+    {
+      id: '2',
+      name: 'João Santos',
+      email: 'joao@escritorio.com',
+      role: 'Funcionário',
+      password: 'func123',
     },
   ];
 
