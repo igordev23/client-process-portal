@@ -1,7 +1,7 @@
 // src/components/storage_service/apiStorageDriver.ts
 import { StorageDriver } from './StorageDriver';
 
-const API_BASE = 'http://localhost:3000/sistema';
+const API_BASE = 'https://legal-control-server.onrender.com/sistema';
 
 export const apiStorageDriver: StorageDriver & {
   createItem?: <T>(key: string, value: T) => Promise<T>;
