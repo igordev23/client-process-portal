@@ -95,7 +95,7 @@ return (
   className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover"
 />
             <div>
-              <h1 className="text-lg sm:text-xl font-semibold text-gray-900">Dra. Cristielle Medeiros</h1>
+              <h1 className="text-lg sm:text-xl font-semibold text-gray-900">Dr. Advogado</h1>
               <p className="text-xs sm:text-sm text-gray-500 hidden sm:block">Sistema Jurídico</p>
             </div>
           </div>
