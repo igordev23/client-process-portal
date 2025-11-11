@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { storageService } from '@/components/storage_service/storageService';
 import { localStorageDriver } from '@/components/storage_service/localStorageDriver';
 import { toCamelCase } from '@/components/ui/caseConverter';
-import { AuthContextType, User, Process, Client, Entity } from '@/types/auth.types';
+import { AuthContextType, User, Process, Client } from '@/types/auth.types';
 
 import { initialUsers, initialClients, initialProcesses } from '@/data/initialData';
 import { useAuthLogic } from '@/hooks/useAuth';
@@ -20,7 +20,8 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const isApiMode = import.meta.env.VITE_STORAGE_MODE === 'api';
+  const [totalPages, setTotalPages] = useState<number>(1); // 👈 novo: total de páginas
+  const [currentPage, setCurrentPage] = useState<number>(1); // 👈 novo: página atual
 
   const authLogic = useAuthLogic();
   const clientsLogic = useClients(authLogic.user);
@@ -30,40 +31,46 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     async function loadData() {
-      // ✅ Carrega usuário salvo primeiro para evitar flash da tela de login
       const storedUser = await localStorageDriver.getItem<User | null>('currentUser', null);
-      if (storedUser) {
-        authLogic.setUser(storedUser);
-      }
-      
+      if (storedUser) authLogic.setUser(storedUser);
+
       setIsLoading(false);
 
+      // 🧠 carrega clientes normalmente
       const rawClients = await storageService.getItem<any[]>('clients', initialClients);
-      const rawProcesses = await storageService.getItem<any[]>('processes', initialProcesses);
+
+      // ✅ carrega processos com suporte à paginação
+      const responseProcesses = await storageService.getItem<any>('processes', initialProcesses, currentPage, 20);
+
+      // Se vier no formato paginado, extrai data, totalPages etc.
+      const rawProcesses = Array.isArray(responseProcesses)
+        ? responseProcesses
+        : responseProcesses?.data || [];
+
+      const totalFromApi = responseProcesses?.totalPages || 1;
+      setTotalPages(totalFromApi);
+
       const rawUsers = await storageService.getItem<any[]>('user', initialUsers);
       const storedTipoCrimes = await storageService.getItem<string[]>('tiposCrime', []);
       const storedComarcasVaras = await storageService.getItem<string[]>('comarcasVaras', []);
       const storedSituacoesPrisionais = await storageService.getItem<string[]>('situacoesPrisionais', []);
       const storedprocessupdtaes = await storageService.getItem<any[]>('processUpdate', []);
 
+      // converte campos de snake_case para camelCase
       const storedClients = toCamelCase(rawClients);
       const storedProcesses = toCamelCase(rawProcesses);
       const storedUsers = toCamelCase(rawUsers);
 
-     
-
-      // Corrige caracteres corrompidos nos nomes dos usuários
+      // corrige possíveis caracteres corrompidos nos nomes
       const fixedUsers = fixUsersEncoding(storedUsers);
-      
 
       clientsLogic.setClients(storedClients);
       processesLogic.setProcesses(storedProcesses);
       setUsers(fixedUsers);
-      // Entity data is handled by useEntities hook
     }
 
     loadData();
-  }, []);
+  }, [currentPage]); // 🔁 recarrega quando a página muda
 
   const value: AuthContextType = {
     ...authLogic,
@@ -73,6 +80,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     ...processUpdatesLogic,
     users,
     isLoading,
+    totalPages,
+    currentPage,
+    setCurrentPage, // 👈 permite mudar a página no Dashboard futuramente
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

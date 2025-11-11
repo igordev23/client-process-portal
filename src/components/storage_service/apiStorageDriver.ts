@@ -1,17 +1,19 @@
 // src/components/storage_service/apiStorageDriver.ts
 import { StorageDriver } from './StorageDriver';
 
-const API_BASE = 'https://legal-control-server.onrender.com/sistema';
+const API_BASE = 'http://localhost:3000/sistema';
 
 export const apiStorageDriver: StorageDriver & {
   createItem?: <T>(key: string, value: T) => Promise<T>;
   updateItem?: <T>(key: string, id: string, value: T) => Promise<T>;
   deleteItem?: (key: string, id: string) => Promise<void>;
-  getUserByEmailAndPassword?: (email: string, password: string) => Promise<any | null>; // 👈 ADICIONADO
+  getUserByEmailAndPassword?: (email: string, password: string) => Promise<any | null>;
 } = {
   
-  async getItem<T>(key: string, fallback?: T): Promise<T> {
-    const res = await fetch(`${API_BASE}/${key}`);
+  // ✅ agora com suporte a paginação
+  async getItem<T>(key: string, fallback?: T, page = 1, limit = 20): Promise<T> {
+    const url = `${API_BASE}/${key}?page=${page}&limit=${limit}`;
+    const res = await fetch(url);
     if (!res.ok) return fallback!;
     return res.json();
   },
@@ -31,28 +33,27 @@ export const apiStorageDriver: StorageDriver & {
   },
 
   async createItem<T>(key: string, value: T): Promise<T> {
-  const res = await fetch(`${API_BASE}/${key}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(value),
-  });
+    const res = await fetch(`${API_BASE}/${key}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(value),
+    });
 
-  if (!res.ok) {
-    let message = `Erro ao criar item em ${key}`;
-    try {
-      const data = await res.json();
-      if (data?.error) {
-        message = data.error;
+    if (!res.ok) {
+      let message = `Erro ao criar item em ${key}`;
+      try {
+        const data = await res.json();
+        if (data?.error) {
+          message = data.error;
+        }
+      } catch {
+        // mantém mensagem genérica
       }
-    } catch {
-      // mantém mensagem genérica
+      throw new Error(message);
     }
-    throw new Error(message);
-  }
 
-  return res.json();
-},
-
+    return res.json();
+  },
 
   async updateItem<T>(key: string, id: string, value: T): Promise<T> {
     const res = await fetch(`${API_BASE}/${key}/${id}`, {
@@ -65,26 +66,20 @@ export const apiStorageDriver: StorageDriver & {
   },
 
   async deleteItem(key: string, id: string): Promise<void> {
-  const res = await fetch(`${API_BASE}/${key}/${id}`, {
-    method: 'DELETE',
-  });
+    const res = await fetch(`${API_BASE}/${key}/${id}`, { method: 'DELETE' });
 
-  if (!res.ok) {
-    let message = `Erro ao deletar item ${id} em ${key}`;
-    try {
-      const data = await res.json();
-      if (data?.error) {
-        message = data.error; // pega a mensagem enviada pelo backend
+    if (!res.ok) {
+      let message = `Erro ao deletar item ${id} em ${key}`;
+      try {
+        const data = await res.json();
+        if (data?.error) message = data.error;
+      } catch {
+        // mantém mensagem genérica
       }
-    } catch {
-      // caso a resposta não seja JSON, mantém a mensagem genérica
+      throw new Error(message);
     }
-    throw new Error(message);
-  }
-},
+  },
 
-
-  // ✅ Novo método de login via API
   async getUserByEmailAndPassword(email: string, password: string): Promise<any | null> {
     const res = await fetch(`${API_BASE}/user/login`, {
       method: 'POST',
