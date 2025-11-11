@@ -1,8 +1,9 @@
 // src/components/storage_service/apiStorageDriver.ts
 import { StorageDriver } from './StorageDriver';
 
-const API_BASE = 'http://localhost:3000/sistema';
+//URL_API do env
 
+const API_BASE = import.meta.env.VITE_URL_API;
 export const apiStorageDriver: StorageDriver & {
   createItem?: <T>(key: string, value: T) => Promise<T>;
   updateItem?: <T>(key: string, id: string, value: T) => Promise<T>;
